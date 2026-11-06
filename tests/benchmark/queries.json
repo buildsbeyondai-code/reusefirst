@@ -1,0 +1,14 @@
+[
+ {"id": "q01", "requirement": "Generate PDF invoices for clients and track unpaid payments"},
+ {"id": "q02", "requirement": "Review pull requests on GitHub and leave code review comments automatically"},
+ {"id": "q03", "requirement": "Write and run database migrations for PostgreSQL schemas"},
+ {"id": "q04", "requirement": "Find security vulnerabilities in my code and dependencies"},
+ {"id": "q05", "requirement": "Create slide decks and presentations from notes"},
+ {"id": "q06", "requirement": "Deploy a web app to Kubernetes with Helm charts"},
+ {"id": "q07", "requirement": "Write unit tests and improve test coverage for a Python project"},
+ {"id": "q08", "requirement": "Manage Jira tickets and sprint planning from the terminal"},
+ {"id": "q09", "requirement": "Translate documentation into multiple languages"},
+ {"id": "q10", "requirement": "Monitor production errors and alerts from Sentry"},
+ {"id": "q11", "requirement": "Build accessible frontend UI components with good design"},
+ {"id": "q12", "requirement": "Track my daily water intake with reminders on my phone"}
+]

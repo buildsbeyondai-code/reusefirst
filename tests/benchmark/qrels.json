@@ -1,0 +1,140 @@
+{
+ "labeller": "Claude (assistant) on 2026-11-06, graded 0/1/2 by reading name+description; NOT independent human labels",
+ "pool": "union of top-15 from v1 and v2 rankers over the local Claude plugin directory cache (3,666 plugins)",
+ "qrels": {
+  "q01": {
+   "plugin-directory:https://github.com/cavada76/invoice-generator/": 2,
+   "plugin-directory:https://github.com/tomhoupt/lessadminhq-plugins/plugins/invoice-matcher": 1,
+   "plugin-directory:https://github.com/pdf-maker-automate-documents/claude-code-plugin/": 1,
+   "plugin-directory:https://github.com/aqtos/aqtos-plugins/plugins/aqtos": 1
+  },
+  "q02": {
+   "marketplace:claude-plugins-official/github": 1,
+   "plugin-directory:https://github.com/anthropics/claude-plugins-official/external_plugins/github": 1,
+   "plugin-directory:https://github.com/sergicoder/prism/": 1,
+   "plugin-directory:https://github.com/the01geek/prflow/": 1,
+   "plugin-directory:https://github.com/better-isms/aevral-plugin/": 2,
+   "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/code-review": 2,
+   "plugin-directory:https://github.com/better-isms/heygrc-plugin/": 1,
+   "marketplace:claude-plugins-official/code-review": 2,
+   "plugin-directory:https://github.com/vandal337/claude-code-review-council/": 2,
+   "marketplace:claude-plugins-official/greptile": 2,
+   "plugin-directory:https://github.com/greptileai/claude-plugin/plugins/greptile": 2,
+   "plugin-directory:https://github.com/frankieramirez/mana/": 1,
+   "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/pr-story-aligner": 1,
+   "plugin-directory:https://github.com/ivorycanvas/qamap/plugins/claude": 1,
+   "plugin-directory:https://github.com/ripplo/claude-plugin/": 1,
+   "marketplace:claude-plugins-official/gitkraken": 1
+  },
+  "q03": {
+   "marketplace:claude-plugins-official/prisma": 2,
+   "plugin-directory:https://github.com/prisma/claude-plugin/": 2,
+   "plugin-directory:https://github.com/esot321c/opinionated-prisma/": 2,
+   "plugin-directory:https://github.com/clidey/whodb/cli/external-plugin/whodb": 1,
+   "plugin-directory:https://github.com/awslabs/agent-plugins/plugins/databases-on-aws": 1,
+   "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/db-schema-spy": 1,
+   "plugin-directory:https://github.com/a-abdellatif98/db-migration-guard/": 2,
+   "marketplace:claude-plugins-official/cloud-sql-postgresql": 1,
+   "plugin-directory:https://github.com/cockroachdb/claude-plugin/": 1,
+   "plugin-directory:https://github.com/gemini-cli-extensions/cloud-sql-postgresql/": 1,
+   "plugin-directory:https://github.com/unvus/neosql-mcp/plugins/neosql-mcp": 1,
+   "marketplace:claude-plugins-official/alloydb": 1,
+   "plugin-directory:https://github.com/gemini-cli-extensions/alloydb/": 1
+  },
+  "q04": {
+   "marketplace:claude-plugins-official/sonatype-guide": 2,
+   "plugin-directory:https://github.com/sonatype/sonatype-guide-claude-plugin/": 2,
+   "marketplace:claude-plugins-official/claude-security": 2,
+   "plugin-directory:https://github.com/iamdxcom/dx-guard/": 2,
+   "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/claude-security": 2,
+   "plugin-directory:https://github.com/ateamsoftsolutio/ateam-security-audit/": 2,
+   "plugin-directory:https://github.com/optimal-ai/optibot-skill/": 1,
+   "marketplace:claude-plugins-official/security-guidance": 1,
+   "marketplace:claude-plugins-official/semgrep": 2,
+   "marketplace:claude-plugins-official/42crunch-api-security-testing": 1,
+   "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/security-guidance": 1,
+   "plugin-directory:https://github.com/semgrep/mcp-marketplace/plugin": 2,
+   "plugin-directory:https://github.com/aws/agent-toolkit-for-aws/plugins/aws-agents-for-devsecops": 2,
+   "plugin-directory:https://github.com/lian-yue/finecomb/": 2,
+   "plugin-directory:https://github.com/nikolasdehor/shieldcode/": 1
+  },
+  "q05": {
+   "plugin-directory:https://github.com/atomic-man007/pptx-deck-plugin/": 2,
+   "plugin-directory:https://github.com/glukicov/slideops/": 1,
+   "plugin-directory:https://github.com/shawnzam/keynot/": 2,
+   "plugin-directory:https://github.com/presenton/presenton-claude-plugin/": 2,
+   "plugin-directory:https://github.com/superdesigndev/superdesign-skill/": 1,
+   "plugin-directory:https://github.com/aitho-app/aitho-claude-plugin/": 1,
+   "plugin-directory:https://github.com/vipinsanthosh/ploxs-presentations-plugin/": 2,
+   "plugin-directory:https://github.com/famous-labs/supercool-skills/plugins/supercool-sites-decks": 1,
+   "plugin-directory:https://github.com/meeting-ai/memo-claude-plugin/": 1,
+   "plugin-directory:https://github.com/slidely-ai/slidely-claude-plugin/": 2,
+   "plugin-directory:https://github.com/yn01/claude-plugins/plugins/slide-revive": 1,
+   "plugin-directory:https://github.com/fluidform-ai/fluiddocs-deck-builder/": 1,
+   "plugin-directory:https://github.com/amaklakov-droid/pitch-deck-skill/": 1
+  },
+  "q06": {
+   "plugin-directory:https://github.com/mohitkale/docker-kubernetes/": 2,
+   "plugin-directory:https://github.com/ayobamiseun/drydock/": 1,
+   "plugin-directory:https://github.com/nitinjain999/platform-skills/": 1,
+   "plugin-directory:https://github.com/regardv/kubernetes-mastery/": 2
+  },
+  "q07": {
+   "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/test-coverage-intelligence": 1,
+   "plugin-directory:https://github.com/ntchz/off-by-none/": 1,
+   "plugin-directory:https://github.com/malek0x1/sabotage/": 1
+  },
+  "q08": {
+   "plugin-directory:https://github.com/illarion/claude-jira-skill/": 2,
+   "plugin-directory:https://github.com/atlassian/atlassian-mcp-server/": 2,
+   "plugin-directory:https://github.com/cedricfarinazzo/agile-skills/agile-sprint-drain": 1,
+   "plugin-directory:https://github.com/vslipchenko/ai/plugins/estimator": 1,
+   "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/pr-story-aligner": 1,
+   "plugin-directory:https://github.com/mohitgoel188/standup-logger/": 1,
+   "plugin-directory:https://github.com/atlassian-labs/twg-plugins/": 1,
+   "marketplace:claude-plugins-official/atlassian-twg-cli": 1,
+   "plugin-directory:https://github.com/bukoo93/project-pilot/": 1,
+   "plugin-directory:https://github.com/aimsise/simple-workflow/": 1
+  },
+  "q09": {
+   "plugin-directory:https://github.com/kcy4334-lgtm/translate-book-arxiv/": 2,
+   "plugin-directory:https://github.com/conveythis/claude-translator/": 2,
+   "plugin-directory:https://github.com/deepl/claude-plugin/": 1,
+   "plugin-directory:https://github.com/ezra-y/academic-pdf-translation/": 1,
+   "plugin-directory:https://github.com/aiocean/claude-plugins/plugins/aio-epub-translate": 1
+  },
+  "q10": {
+   "marketplace:claude-plugins-official/sentry-cli": 2,
+   "plugin-directory:https://github.com/getsentry/cli/packages/cli/plugins/sentry-cli": 2,
+   "plugin-directory:https://github.com/getsentry/plugin-claude/": 2,
+   "plugin-directory:https://github.com/vinktarhq/agent/": 1,
+   "plugin-directory:https://github.com/elmahio/elmah-io-ai-plugin/": 1,
+   "plugin-directory:https://github.com/grafana/ai-marketplace/plugins/grafana-mcp": 1,
+   "plugin-directory:https://github.com/signoz/agent-skills/plugins/signoz": 1,
+   "marketplace:claude-plugins-official/newrelic": 1,
+   "plugin-directory:https://github.com/steadwing/agent-skills/": 1
+  },
+  "q11": {
+   "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/frontend-design": 2,
+   "marketplace:claude-plugins-official/frontend-design": 2,
+   "plugin-directory:https://github.com/dequelabs/axe-accessibility/": 2,
+   "plugin-directory:https://github.com/facade-ui/skill/": 1,
+   "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/figma-to-code": 1,
+   "plugin-directory:https://github.com/playbooktv/rayden-ui-design-skill/": 1,
+   "marketplace:claude-plugins-official/superdesign": 1,
+   "plugin-directory:https://github.com/superdesigndev/superdesign-skill/": 1,
+   "marketplace:claude-plugins-official/ui-theme-designer": 1,
+   "plugin-directory:https://github.com/magicpathai/agent-skills/": 1,
+   "plugin-directory:https://github.com/vectorlabau/skills/": 1,
+   "plugin-directory:https://github.com/sh5623/fe-rail/": 1,
+   "plugin-directory:https://github.com/igniteui/igniteui-claude-plugin/": 1,
+   "plugin-directory:https://github.com/thevrus/consistent-ui/": 1
+  },
+  "q12": {
+   "plugin-directory:https://github.com/theusanchez/stay-hydrated/": 1,
+   "plugin-directory:https://github.com/joaolucasmelo/vivara-claude-plugin/": 1,
+   "plugin-directory:https://github.com/callremind/callremind-claude-marketplace/plugins/callremind": 1
+  }
+ },
+ "pool_extension": "3 items first surfaced by v2 were judged afterwards (gitkraken=1, Multi-repo Diff=0, Pragmatic Dev Toolkit=0)"
+}

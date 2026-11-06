@@ -45,6 +45,13 @@ SYN_GROUPS: list[tuple[str, set[str]]] = [
     ("pdf", {"pdf", "document", "documents", "docx"}),
 ]
 
+# Generic action verbs say WHAT KIND of work, not which product: they get a reduced weight in scoring (2.0 ranking,
+# measured in tests/benchmark). Nouns and domain words carry the requirement's meaning.
+ACTION_WEIGHT = 0.35
+_ACTIONS_RAW = """generate generates generating write writes writing track tracking improve improving manage managing run
+running deploy deploying create get set add show view open edit update automate automatically convert send find
+monitor monitoring review reviewing""".split()
+
 _SUFFIXES = ("ization", "isation", "ations", "ation", "ments", "ment", "ities", "ity",
              "ings", "ing", "ers", "er", "ies", "es", "ed", "ly", "s")
 
@@ -66,9 +73,20 @@ for _display, _group in SYN_GROUPS:
         _CANON[stem(_w)] = _key
 
 
+ACTIONS: frozenset = frozenset()
+
+
 def norm(word: str) -> str:
     s = stem(word)
     return _CANON.get(s, s)
+
+
+ACTIONS = frozenset(norm(w) for w in _ACTIONS_RAW)
+
+
+def weighted(idf: Callable[[str], float]) -> Callable[[str], float]:
+    """IDF with generic action verbs down-weighted."""
+    return lambda t: idf(t) * (ACTION_WEIGHT if t in ACTIONS else 1.0)
 
 
 def tokens(text: str) -> list[str]:

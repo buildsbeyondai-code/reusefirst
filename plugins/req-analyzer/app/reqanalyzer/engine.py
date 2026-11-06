@@ -18,8 +18,8 @@ MAX_GITHUB_QUERIES = 5  # unauthenticated search allows 10/min; keeps 2 analyses
 EVIDENCE_TOP = 5          # README inspection for the top N GitHub candidates (Stage D)
 EVIDENCE_DEADLINE_S = 8
 PROVIDER_DEADLINE_S = 25
-METHOD = ("relevance = 75% IDF-weighted concept coverage + 25% TF-IDF cosine over name (counted twice), description and "
-          "topics. Lexical with synonyms, NOT semantic, and UNCALIBRATED: a relevance score, not a probability that "
+METHOD = ("relevance = 75% IDF-weighted concept coverage + 25% TF-IDF cosine over name, description and topics, "
+          "with generic action verbs (generate, track, manage...) down-weighted to 0.35. Lexical with synonyms, NOT semantic, and UNCALIBRATED: a relevance score, not a probability that "
           "reuse will succeed. Evidence confidence rises when a README confirms the concepts.")
 
 LANGS = {"python": "Python", "django": "Python", "flask": "Python", "fastapi": "Python", "javascript": "JavaScript",
@@ -51,10 +51,11 @@ def catalog(reload: bool = False) -> dict:
         return _catalog
 
 
-def make_idf(cat: dict):
+def make_idf(cat: dict, actions: bool = True):
     n = len(cat["plugins"])
     df = cat["df"]
-    return lambda t: math.log((n + 1) / (df.get(t, 0) + 1)) + 1.0
+    base = lambda t: math.log((n + 1) / (df.get(t, 0) + 1)) + 1.0  # noqa: E731
+    return textscore.weighted(base) if actions else base
 
 
 class InputError(ValueError):
@@ -168,7 +169,7 @@ def _enrich(rec: dict, prof: dict, readme: str | None, rc: list[str]) -> dict:
 
 def _score_text(name: str, desc: str, topics) -> list[str]:
     nm = name.split("/")[-1].replace("-", " ").replace("_", " ")
-    return textscore.terms(" ".join([nm, nm, textscore.clip(desc), " ".join(topics or []).replace("-", " ")]))
+    return textscore.terms(" ".join([nm, textscore.clip(desc), " ".join(topics or []).replace("-", " ")]))
 
 
 def analyze(requirement: str, keywords: list[str] | None = None, top: int = 10, github: bool = True,
