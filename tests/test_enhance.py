@@ -26,7 +26,10 @@ def make_app(name="job-finder"):
     (d / "README.md").write_text("# Resume-Matched Job Finder\nFinds jobs.\n")
     (d / "BUILD_SPEC.md").write_text("ORIGINAL SPEC\n")
     (d / "data" / "jobs.sqlite3").write_text("user data")
-    (d / ".venv" / "bin" / "python").write_text("binary")
+    (d / ".venv" / "bin" / "python").symlink_to("/usr/bin/python3")
+    (d / "tests").mkdir()
+    (d / "tests" / "test_existing.py").write_text("import unittest\n\nclass T(unittest.TestCase):\n"
+                                                 "    def test_ok(self):\n        self.assertTrue(True)\n")
     return d
 
 
@@ -94,7 +97,12 @@ class EnhanceTests(unittest.TestCase):
         job = self.mgr.start("Auto apply via Naukri/LinkedIn when no company site", enhance_answers(self.app),
                              {"must_have": "MUST-have features"})
         j = wait(self.mgr, job["id"])
-        self.assertEqual((j["status"], j["mode"]), ("succeeded", "enhance"))
+        self.assertEqual((j["status"], j["mode"]), ("succeeded", "enhance"), j.get("reasons"))
+        self.assertTrue(j["applied"])
+        self.assertEqual(j["baseline_tests"]["status"], "passed")
+        self.assertEqual({g["id"]: g for g in j["gates"]}["regression"]["status"], "VERIFIED")
+        self.assertTrue(Path(j["previous_version"]).is_dir())  # previous version kept
+        self.assertFalse((Path(j["previous_version"]) / "app.py").exists())
         self.assertIn("Outcome: enhanced", j["report"])  # read from docs/ENHANCE_REPORT.md
         self.assertEqual((self.app / "BUILD_SPEC.md").read_text(), "ORIGINAL SPEC\n")  # original spec kept
         spec = (self.app / "docs" / "ENHANCE_SPEC.md").read_text()
@@ -107,7 +115,8 @@ class EnhanceTests(unittest.TestCase):
         self.assertIn("job-finder/data/jobs.sqlite3", names)
         self.assertIn("job-finder/BUILD_SPEC.md", names)
         self.assertFalse(any("/.venv" in n for n in names))
-        self.assertNotIn("job-finder/app.py", names)  # written by the build, so not in the earlier backup
+        self.assertNotIn("job-finder/app.py", names)
+        self.assertGreaterEqual(j["backup_files"], 4)  # verified file count  # written by the build, so not in the earlier backup
         argv = json.loads(Path(os.environ["FAKE_CLAUDE_ARGV"]).read_text().splitlines()[-1])["argv"]
         prompt = argv[1]
         for need in ("ENHANCING an existing", "docs/ENHANCE_SPEC.md", "tools/coverage.sh", "Every existing test must still pass",
@@ -116,6 +125,39 @@ class EnhanceTests(unittest.TestCase):
             self.assertIn(need, prompt)
         self.assertIn("Bash(tools/*:*)", argv)
         self.assertEqual(argv[argv.index("--permission-mode") + 1], "dontAsk")
+
+    def test_failed_enhancement_leaves_app_untouched(self):  # regression A11
+        os.environ["FAKE_CLAUDE_MODE"] = "badtests"
+        try:
+            j = wait(self.mgr, self.mgr.start("x", enhance_answers(self.app), {})["id"])
+        finally:
+            os.environ["FAKE_CLAUDE_MODE"] = "ok"
+        self.assertEqual(j["status"], "failed")
+        self.assertFalse((self.app / "app.py").exists())
+        self.assertFalse(j.get("applied"))
+        self.assertTrue((Path(j["staging_dir"]) / "app.py").exists())  # attempted version kept for review
+
+    def test_user_change_during_build_blocks_apply(self):
+        orig = builder.gates.run_all
+
+        def touch_then_verify(*a, **k):
+            (self.app / "data" / "jobs.sqlite3").write_text("user changed this during the build")
+            return orig(*a, **k)
+        builder.gates.run_all = touch_then_verify
+        try:
+            j = wait(self.mgr, self.mgr.start("x", enhance_answers(self.app), {})["id"])
+        finally:
+            builder.gates.run_all = orig
+        self.assertEqual(j["status"], "blocked")
+        self.assertFalse((self.app / "app.py").exists())
+        self.assertEqual((self.app / "data" / "jobs.sqlite3").read_text(), "user changed this during the build")
+
+    def test_symlinked_app_rejected(self):  # regression A17
+        link = APPS / "linked"
+        link.unlink(missing_ok=True)
+        link.symlink_to(self.app)
+        self.assertNotIn("linked", [a["name"] for a in builder.existing_apps()])
+        link.unlink()
 
     def test_enhance_with_git_and_reuse(self):
         p = builder.enhance_prompt(builder.validate_spec("r", enhance_answers(self.app, git=True, reuse=[])))

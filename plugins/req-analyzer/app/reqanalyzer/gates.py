@@ -256,7 +256,7 @@ def test_command(w: Path) -> list[str] | None:
     if has_pytest and (tests_dir or (w / "pytest.ini").exists() or (w / "pyproject.toml").exists()):
         return [py, "-m", "pytest", "-q", "-p", "no:cacheprovider"]
     if tests_dir and any((w / tests_dir).glob("test*.py")):
-        return [py, "-m", "unittest", "discover", "-s", tests_dir, "-t", "."]
+        return [py, "-m", "unittest", "discover", "-s", tests_dir]
     return None
 
 

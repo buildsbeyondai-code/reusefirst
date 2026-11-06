@@ -690,6 +690,7 @@ Budget: you have about {a['max_minutes']} minutes; prioritise working, tested mu
 
 
 IDEMPOTENCY_TTL_S = 600
+MINUTE_S = 60.0  # tests shrink this to exercise the time limit
 MAX_PROJECT_BYTES = int(os.environ.get("REQAN_MAX_PROJECT_MB", "6144")) * 1024 * 1024
 STAGING_DIRNAME = ".reusefirst-staging"
 AT_FDCWD, RENAME_EXCHANGE = -100, 2
@@ -1046,13 +1047,17 @@ class BuildManager:
         stop = threading.Event()
 
         def watchdog():
-            deadline = time.time() + a["max_minutes"] * 60
-            while not stop.wait(5):
+            deadline = time.time() + a["max_minutes"] * MINUTE_S
+            last_size = time.time()
+            while not stop.wait(min(5.0, MINUTE_S / 4)):
                 if time.time() > deadline and p.poll() is None:
                     job["timed_out"] = True
                     r.kill()
                     return
-                if int(time.time()) % 60 < 5 and dir_bytes(work, MAX_PROJECT_BYTES) > MAX_PROJECT_BYTES:
+                if time.time() - last_size > 60:
+                    last_size = time.time()
+                    if dir_bytes(work, MAX_PROJECT_BYTES) <= MAX_PROJECT_BYTES:
+                        continue
                     job["storage_exceeded"] = True
                     r.kill()
                     return

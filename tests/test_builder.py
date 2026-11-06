@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 import helpers
-from reqanalyzer import builder, server
+from reqanalyzer import builder, lifecycle, server
 
 ANALYSIS = {
     "github": [
@@ -23,12 +23,15 @@ ANALYSIS = {
 }
 
 
+PORT = helpers.free_port()
+
+
 def answers(tmp_name, **over):
     a = {"app_name": "Invoice Hub", "output_dir": str(helpers.TMP / "apps" / tmp_name), "users": "me",
          "platforms": "WSL", "journeys": "create invoice", "must_have": "Create invoice", "acceptance": "Given x when y then z",
          "reuse": ["GitHub · acme/stripe-invoices · 82% · MIT · https://github.com/acme/stripe-invoices",
                    "Claude plugin · invoice-maker · 55% · see repo · https://github.com/acme/plugins/tree/HEAD/invoice"],
-         "git": True, "budget_usd": 3, "max_minutes": 5, "model": "default", "port": 5071}
+         "git": True, "budget_usd": 3, "max_minutes": 5, "model": "default", "port": PORT}
     a.update(over)
     return a
 
@@ -37,7 +40,7 @@ def wait(mgr, job_id, timeout=20):
     end = time.time() + timeout
     while time.time() < end:
         j = mgr.get(job_id)
-        if j["status"] not in ("queued", "running"):
+        if not lifecycle.is_active(j["status"]):
             return j
         time.sleep(0.1)
     raise AssertionError("build did not finish")
@@ -55,14 +58,22 @@ class InputsTests(unittest.TestCase):
             self.assertIn(need, ids)
         self.assertTrue(set(builder.REQUIRED_FIELDS) <= ids)
 
-    def test_reuse_preselects_closest(self):
-        opts, picked = builder.reuse_candidates(ANALYSIS)
+    def test_reuse_preselects_only_policy_eligible(self):
+        opts, picked, why = builder.reuse_candidates(ANALYSIS)
         self.assertEqual(len(opts), 4)  # plugin without a GitHub URL is not offered
-        self.assertEqual([p.split(" · ")[1] for p in picked], ["acme/stripe-invoices", "acme/billing", "invoice-maker"])
+        self.assertEqual(picked, [])  # 1.x rows carry no evidence, licence class or maintenance: nothing qualifies
+        self.assertTrue(all(why[o] for o in opts))
+        good = {"name": "acme/good", "closeness": 80, "coverage": 80, "license": "MIT",
+                "licence": {"spdx": "MIT", "reuse": "allowed"}, "maintenance": {"state": "active"},
+                "evidence": {"confidence": 70}, "compatibility": "pass", "url": "https://github.com/acme/good"}
+        _, picked, _ = builder.reuse_candidates({"github": [good, dict(good, name="acme/gpl", url="https://github.com/acme/gpl",
+                                                                       licence={"spdx": "GPL-3.0", "reuse": "review"})]})
+        self.assertEqual([p.split(" · ")[1] for p in picked], ["acme/good"])
 
-    def test_reuse_top_match_always_ticked_even_if_weak(self):
-        _, picked = builder.reuse_candidates({"github": [ANALYSIS["github"][2]], "claude_plugins": []})
-        self.assertEqual(len(picked), 1)
+    def test_weak_top_match_is_never_ticked(self):  # regression A8: a 4% unlicensed repo was pre-ticked
+        _, picked, why = builder.reuse_candidates({"github": [ANALYSIS["github"][2]], "claude_plugins": []})
+        self.assertEqual(picked, [])
+        self.assertTrue(any("coverage" in r for r in next(iter(why.values()))))
 
     def test_claude_prefill_is_sanitised(self):
         r = builder.required_inputs("invoice app", ANALYSIS)
@@ -135,6 +146,17 @@ class SpecTests(unittest.TestCase):
             ("req", answers("a", port=80)),
             ("req", answers("a", port="abc")),
             ("req", answers("a", budget_usd="lots")),
+            ("req", answers("a", budget_usd=float("nan"))),  # regression A6
+            ("req", answers("a", budget_usd=float("inf"))),
+            ("req", answers("a", max_minutes=float("inf"))),
+            ("req", answers("a", budget_usd=True)),
+            ("req", answers("a", budget_usd=999)),
+            ("req", answers("a", max_minutes=0)),
+            ("req", answers("a", port=5071.5)),
+            ("req", answers("a", reuse=["evil https://evil.example/?https://github.com/a/b"])),  # regression A7
+            ("req", answers("a", reuse=["GitHub · x · 1% · MIT · https://github.com/a/b?x=1"])),
+            ("req", answers("a", reuse=["GitHub · x · 1% · MIT · https://user@github.com/a/b"])),
+            ("req", answers("a", reuse=["GitHub · x · 1% · MIT · http://github.com/a/b"])),
             ("req", {**answers("a"), "Bad Key": 1}),
             ("req", answers("a", notes={"nested": 1})),
         ]
@@ -155,19 +177,25 @@ class SpecTests(unittest.TestCase):
         self.assertNotIn(p, builder.BROWSER_UNSAFE_PORTS | builder.RESERVED_PORTS)
         self.assertNotIn(builder.free_port(5060), builder.BROWSER_UNSAFE_PORTS)
 
-    def test_clamps_limits(self):
-        a = builder.validate_spec("req", answers("c", budget_usd=999, max_minutes=0))
-        self.assertEqual((a["budget_usd"], a["max_minutes"]), (50.0, 2))
+    def test_accepts_limits_in_range(self):
+        a = builder.validate_spec("req", answers("c", budget_usd="2.5", max_minutes=180))
+        self.assertEqual((a["budget_usd"], a["max_minutes"]), (2.5, 180))
 
     def test_prompt_contents(self):
         a = builder.validate_spec("req", answers("p"))
         p = builder.build_prompt(a)
         self.assertIn("NON-INTERACTIVELY", p)
         self.assertIn("MANDATORY", p)
-        self.assertIn("git clone --depth 1 https://github.com/acme/stripe-invoices upstream/stripe-invoices", p)
-        self.assertIn("git clone --depth 1 https://github.com/acme/plugins upstream/plugins (plugin lives in subfolder invoice)", p)
+        self.assertIn("TRUST BOUNDARY", p)
+        self.assertIn("UNTRUSTED DATA", p)
+        self.assertNotIn("git clone", p)  # ReuseFirst clones; the agent never does
+        a["_provenance"] = [{"name": "acme/stripe-invoices", "url": "https://github.com/acme/stripe-invoices",
+                             "licence": {"spdx": "MIT", "reuse": "allowed"}, "cloned": True,
+                             "local_path": "upstream/acme__stripe-invoices", "subpath": None}]
+        p = builder.build_prompt(a)
+        self.assertIn("local copy: upstream/acme__stripe-invoices", p)
         self.assertIn("docs/REUSE.md", p)
-        self.assertIn("127.0.0.1:5071", p)
+        self.assertIn(f"127.0.0.1:{PORT}", p)
         self.assertIn("no reuse", builder.reuse_instructions([]).lower() + " no reuse")
         # every build follows the UI standard; default level Enterprise, the §20 UI gate table is required
         self.assertIn("UI STANDARD (MANDATORY): docs/UEUIS_TEST.md", p)
@@ -217,8 +245,19 @@ class LifecycleTests(unittest.TestCase):
         job = self.mgr.start("Invoice app", answers("ok1"), {"must_have": "MUST-have features"})
         j = wait(self.mgr, job["id"])
         out = Path(j["output_dir"])
-        self.assertEqual(j["status"], "succeeded")
+        self.assertEqual(j["status"], "succeeded", j.get("reasons"))
         self.assertEqual((j["cost_usd"], j["denials"], j["result"]), (1.23, 1, "Built Invoice Hub"))
+        by = {g["id"]: g for g in j["gates"]}
+        self.assertEqual(by["tests"]["status"], "VERIFIED")  # re-run independently in the sandbox
+        self.assertEqual(j["tests"]["passed"], 1)
+        self.assertEqual(by["provenance"]["status"], "VERIFIED")
+        prov = (out / "docs" / "REUSE_PROVENANCE.md").read_text()
+        self.assertIn("0123456789abcdef0123456789abcdef01234567", prov)  # pinned commit
+        self.assertIn("upstream/", (out / ".gitignore").read_text())
+        self.assertTrue((out / "docs" / "VERIFICATION_REPORT.md").exists())
+        self.assertTrue((out / "docs" / "sbom.cdx.json").exists())
+        states = [t["to"] for t in j["transitions"]]
+        self.assertEqual(states, ["validated", "queued", "preparing", "running", "verifying", "succeeded"])
         self.assertTrue(j["has_run_sh"] and j["has_reuse_doc"])
         self.assertIn("Outcome: built", j["report"])
         spec = (out / "BUILD_SPEC.md").read_text()
@@ -248,6 +287,37 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(self.mgr.get(j["id"], n)["events"], [])
         self.assertEqual(len(self.mgr.get(j["id"], n - 1)["events"]), 1)
 
+    def test_agent_success_is_not_self_certified(self):  # regression A10
+        for mode, gate in (("badtests", "tests"), ("secret", "secrets")):
+            os.environ["FAKE_CLAUDE_MODE"] = mode
+            j = wait(self.mgr, self.mgr.start("r", answers("v-" + mode, reuse=[]))["id"])
+            self.assertEqual(j["status"], "failed")
+            self.assertEqual({g["id"]: g for g in j["gates"]}[gate]["status"], "FAILED")
+
+    def test_idempotent_start(self):  # regression A14
+        job = self.mgr.start("r", answers("idem1", reuse=[]), idem_key="key-12345678")
+        again = self.mgr.start("r", answers("idem1", reuse=[]), idem_key="key-12345678")
+        self.assertEqual((again["id"], again["duplicate"]), (job["id"], True))
+        wait(self.mgr, job["id"])
+        with self.assertRaises(builder.BuildError):
+            self.mgr.start("r", answers("idem2"), idem_key="bad key!")
+
+    def test_cancel_before_running(self):  # regression A12
+        os.environ["FAKE_CLAUDE_MODE"] = "slow"
+        job = self.mgr.start("r", answers("early-cancel"))
+        self.assertTrue(self.mgr.cancel(job["id"]))  # still preparing (cloning)
+        j = wait(self.mgr, job["id"])
+        self.assertEqual(j["status"], "cancelled")
+
+    def test_blocked_without_sandbox(self):
+        old = builder.sandbox._self_test
+        builder.sandbox._self_test = {"ok": False, "error": "bwrap missing", "resource_control": "none"}
+        try:
+            with self.assertRaisesRegex(builder.BuildError, "blocked because no verified sandbox"):
+                self.mgr.start("r", answers("nosbx"))
+        finally:
+            builder.sandbox._self_test = old
+
     def test_failure_and_budget(self):
         os.environ["FAKE_CLAUDE_MODE"] = "fail"
         j = wait(self.mgr, self.mgr.start("r", answers("fail1"))["id"])
@@ -275,14 +345,13 @@ class LifecycleTests(unittest.TestCase):
 
     def test_timeout(self):
         os.environ["FAKE_CLAUDE_MODE"] = "slow"
-        a = builder.validate_spec("r", answers("to1"))
-        job = {"id": "t-timeout", "app_name": "x", "output_dir": a["output_dir"], "status": "queued", "created_at": time.time(),
-               "started_at": None, "finished_at": None, "events": []}
-        self.mgr.jobs[job["id"]] = job
-        Path(a["output_dir"]).mkdir(parents=True)
-        (self.mgr.dir / job["id"]).mkdir()
-        self.mgr._run(job, [os.environ["REQAN_CLAUDE_BIN"], "-p", "x", "--output-format", "stream-json"], Path(a["output_dir"]), 1)
-        self.assertEqual(job["status"], "timed-out")
+        old = builder.MINUTE_S
+        builder.MINUTE_S = 0.5
+        try:
+            j = wait(self.mgr, self.mgr.start("r", answers("to1", max_minutes=2, reuse=[]))["id"])
+        finally:
+            builder.MINUTE_S = old
+        self.assertEqual(j["status"], "timed_out")
 
     def test_restart_marks_interrupted(self):
         os.environ["FAKE_CLAUDE_MODE"] = "slow"
@@ -291,6 +360,19 @@ class LifecycleTests(unittest.TestCase):
         again = builder.BuildManager(self.mgr.dir.parent)
         self.assertEqual(again.get(job["id"])["status"], "interrupted")
         self.mgr.cancel(job["id"])
+        wait(self.mgr, job["id"])
+
+    def test_restart_kills_orphan_only_when_start_time_matches(self):  # regression A13
+        import subprocess
+        p = subprocess.Popen(["sleep", "30"], start_new_session=True)
+        try:
+            self.assertFalse(builder.BuildManager._kill_orphan({"pid": p.pid, "proc_start": "1"}))  # PID reuse guard
+            self.assertIsNone(p.poll())
+            self.assertTrue(builder.BuildManager._kill_orphan({"pid": p.pid, "proc_start": builder.proc_start(p.pid)}))
+            self.assertEqual(p.wait(5), -9)
+        finally:
+            if p.poll() is None:
+                p.kill()
 
     def test_missing_standard_refuses(self):
         old = builder.UAISES
@@ -314,9 +396,14 @@ class LifecycleTests(unittest.TestCase):
 
     def test_launch(self):
         j = wait(self.mgr, self.mgr.start("r", answers("launch1"))["id"])
+        self.assertEqual(j["status"], "succeeded", j.get("reasons"))
         r = self.mgr.launch(j["id"])
-        self.assertEqual(r["url"], "http://127.0.0.1:5071/")
-        os.kill(r["pid"], 15)
+        self.assertEqual((r["url"], r["sandboxed"]), (f"http://127.0.0.1:{PORT}/", True))
+        self.assertTrue(r["health"].startswith("HTTP 2"))
+        with self.assertRaisesRegex(builder.BuildError, "already running"):
+            self.mgr.launch(j["id"])
+        self.assertTrue(self.mgr.stop(j["id"]))
+        self.assertFalse(self.mgr.stop(j["id"]))
         with self.assertRaises(builder.BuildError):
             self.mgr.launch("nope")
 
@@ -370,7 +457,8 @@ class BuildApiTests(unittest.TestCase):
         st, r = self.req("POST", "/api/inputs", {"requirement": "Stripe invoicing with PDF invoices"})
         self.assertEqual(st, 200)
         reuse = next(f for f in r["fields"] if f["id"] == "reuse")
-        self.assertTrue(reuse["default"])  # closest projects pre-ticked
+        self.assertTrue(reuse["options"])
+        self.assertIsInstance(reuse["not_preselected"], dict)
         self.assertTrue(all("https://github.com/" in o for o in reuse["options"]))
         self.assertEqual(self.req("POST", "/api/inputs", {"requirement": ""})[0], 400)
 
@@ -386,7 +474,7 @@ class BuildApiTests(unittest.TestCase):
         end = time.time() + 20
         while time.time() < end:
             st, j = self.req("GET", f"/api/builds/{job['id']}?since=0")
-            if j["status"] == "succeeded":
+            if not lifecycle.is_active(j["status"]):
                 break
             time.sleep(0.2)
         self.assertEqual(j["status"], "succeeded")
