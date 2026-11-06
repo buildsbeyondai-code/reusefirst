@@ -720,10 +720,21 @@ def claude_spec(work: Path, inside: Path | None = None) -> sandbox.Spec:
                         memory_mb=4096, tasks=2048, cpu_percent=300)
 
 
+# User data and secrets are never copied into the build's staging folder (the agent cannot read or change them).
+# They stay in the app and are carried over unchanged when the verified version is swapped in.
+CARRY_OVER = ("data", ".env", "browser-profile", "secrets", ".secrets")
+
+
+def carried(root: Path) -> list[str]:
+    return [n for n in CARRY_OVER if (root / n).exists() or (root / n).is_symlink()]
+
+
 def manifest(root: Path) -> dict[str, list[int]]:
-    """relative path -> [size, mtime_ns] for the app's own files (not venvs, caches, clones)."""
+    """relative path -> [size, mtime_ns] for the app's own files (not venvs, caches, clones, or carried-over user data)."""
     out = {}
     for f in gates.project_files(root, max_files=200000):
+        if f.relative_to(root).parts[0] in CARRY_OVER:
+            continue
         try:
             st = f.stat()
         except OSError:
@@ -829,6 +840,14 @@ class BuildManager:
                 applied = target.exists() and target.stat().st_ino == sw.get("staging_ino")
         except OSError:
             applied = False
+        if applied:  # finish carrying the user's data over (it is in the previous version or still at staging)
+            for n in sw.get("carry") or []:
+                for src in (Path(sw["previous"]) / n, staging / n):
+                    if (src.exists() or src.is_symlink()) and not (target / n).exists():
+                        try:
+                            os.rename(src, target / n)
+                        except OSError:
+                            pass
         sw["state"] = "done"
         job["applied"] = applied
         METRICS.inc("recovery_swap")
@@ -962,7 +981,15 @@ class BuildManager:
             before = manifest(target)
             staging = APPS_DIR / STAGING_DIRNAME / f"{target.name}-{job['id']}"
             staging.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copytree(target, staging, symlinks=True)
+            keep_out = carried(target)
+            shutil.copytree(target, staging, symlinks=True,
+                            ignore=lambda d, names: [n for n in names if Path(d) == target and n in keep_out])
+            for n in keep_out:  # empty placeholders so code that expects data/ still runs
+                if (target / n).is_dir() and not (target / n).is_symlink():
+                    (staging / n).mkdir(exist_ok=True)
+            job["carried_over"] = keep_out
+            if keep_out:
+                self._event(job, "info", f"Kept out of the build (user data and secrets, carried over unchanged): {', '.join(keep_out)}")
             job["staging_dir"] = str(staging)
             work, inside = staging, target  # the staging copy is mounted AT the app's path inside the sandbox
             self._event(job, "info", "Running the existing tests on the staging copy (baseline)")
@@ -1111,12 +1138,20 @@ class BuildManager:
 
     def _apply(self, job: dict, target: Path, staging: Path, before: dict) -> str | None:
         """Swap the verified staging copy in. Returns a BLOCKED reason, or None when applied."""
-        if manifest(target) != before:
+        if manifest(target) != before:  # code/config edited meanwhile (user data is carried over, not compared)
             return (f"the app changed while the build ran, so nothing was applied; the verified version is at {staging} "
                     "and your app is untouched")
         prev = self.state / "backups" / f"{target.name}-before-{job['id']}"
         job["swap"] = {"state": "exchanging", "target": str(target), "staging": str(staging), "previous": str(prev),
                        "staging_ino": staging.stat().st_ino}
+        self._save(job)
+        for n in job.get("carried_over") or []:  # replace the empty placeholders with nothing; the real data moves after
+            p = staging / n
+            if p.is_dir() and not p.is_symlink() and not any(p.iterdir()):
+                p.rmdir()
+            elif p.exists() and n in CARRY_OVER:
+                shutil.rmtree(p) if p.is_dir() and not p.is_symlink() else p.unlink()  # build must not ship its own copy
+        job["swap"]["carry"] = list(job.get("carried_over") or [])
         self._save(job)
         try:
             exchange(staging, target)
@@ -1132,6 +1167,10 @@ class BuildManager:
                 staging = prev
             except OSError:
                 pass  # different filesystem: the previous version stays at the staging path
+        for n in job["swap"].get("carry") or []:  # move the user's data and secrets into the new version
+            src = staging / n
+            if (src.exists() or src.is_symlink()) and not (target / n).exists():
+                os.rename(src, target / n)
         job["swap"]["state"] = "done"
         job["applied"] = True
         job["previous_version"] = str(staging)

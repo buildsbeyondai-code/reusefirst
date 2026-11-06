@@ -25,6 +25,7 @@ def make_app(name="job-finder"):
     (d / "README.md").write_text("# Resume-Matched Job Finder\nFinds jobs.\n")
     (d / "BUILD_SPEC.md").write_text("ORIGINAL SPEC\n")
     (d / "data" / "jobs.sqlite3").write_text("user data")
+    (d / ".env").write_text("ADZUNA_APP_KEY=secret-value-123\n")
     (d / ".venv" / "bin" / "python").symlink_to("/usr/bin/python3")
     (d / "tests").mkdir()
     (d / "tests" / "test_existing.py").write_text("import unittest\n\nclass T(unittest.TestCase):\n"
@@ -101,6 +102,12 @@ class EnhanceTests(unittest.TestCase):
         self.assertEqual(j["baseline_tests"]["status"], "passed")
         self.assertEqual({g["id"]: g for g in j["gates"]}["regression"]["status"], "VERIFIED")
         self.assertTrue(Path(j["previous_version"]).is_dir())  # previous version kept
+        # user data never entered the build and is carried over unchanged
+        self.assertEqual(j["carried_over"], ["data", ".env"])
+        self.assertEqual((self.app / "data" / "jobs.sqlite3").read_text(), "user data")
+        self.assertEqual((self.app / ".env").read_text(), "ADZUNA_APP_KEY=secret-value-123\n")
+        argv_rec = Path(os.environ["FAKE_CLAUDE_ARGV"]).read_text()
+        self.assertNotIn("secret-value-123", argv_rec)
         self.assertFalse((Path(j["previous_version"]) / "app.py").exists())
         self.assertIn("Outcome: enhanced", j["report"])  # read from docs/ENHANCE_REPORT.md
         self.assertEqual((self.app / "BUILD_SPEC.md").read_text(), "ORIGINAL SPEC\n")  # original spec kept
@@ -136,11 +143,42 @@ class EnhanceTests(unittest.TestCase):
         self.assertFalse(j.get("applied"))
         self.assertTrue((Path(j["staging_dir"]) / "app.py").exists())  # attempted version kept for review
 
+    def test_staging_never_contains_user_data(self):
+        seen = {}
+        orig = builder.gates.run_all
+
+        def look(w, *a, **k):
+            seen["data"] = sorted(p.name for p in (Path(w) / "data").iterdir())
+            seen["env"] = (Path(w) / ".env").exists()
+            return orig(w, *a, **k)
+        builder.gates.run_all = look
+        try:
+            j = wait(self.mgr, self.mgr.start("x", enhance_answers(self.app), {})["id"])
+        finally:
+            builder.gates.run_all = orig
+        self.assertEqual((seen["data"], seen["env"]), ([], False))
+        self.assertEqual(j["status"], "succeeded", j.get("reasons"))
+
+    def test_data_change_during_build_is_kept(self):
+        orig = builder.gates.run_all
+
+        def touch_then_verify(*a, **k):
+            (self.app / "data" / "jobs.sqlite3").write_text("app wrote this during the build")
+            return orig(*a, **k)
+        builder.gates.run_all = touch_then_verify
+        try:
+            j = wait(self.mgr, self.mgr.start("x", enhance_answers(self.app), {})["id"])
+        finally:
+            builder.gates.run_all = orig
+        self.assertEqual(j["status"], "succeeded", j.get("reasons"))  # data is carried over, so no conflict
+        self.assertEqual((self.app / "data" / "jobs.sqlite3").read_text(), "app wrote this during the build")
+        self.assertTrue((self.app / "app.py").exists())
+
     def test_user_change_during_build_blocks_apply(self):
         orig = builder.gates.run_all
 
         def touch_then_verify(*a, **k):
-            (self.app / "data" / "jobs.sqlite3").write_text("user changed this during the build")
+            (self.app / "README.md").write_text("user changed this during the build")
             return orig(*a, **k)
         builder.gates.run_all = touch_then_verify
         try:
@@ -149,7 +187,7 @@ class EnhanceTests(unittest.TestCase):
             builder.gates.run_all = orig
         self.assertEqual(j["status"], "blocked")
         self.assertFalse((self.app / "app.py").exists())
-        self.assertEqual((self.app / "data" / "jobs.sqlite3").read_text(), "user changed this during the build")
+        self.assertEqual((self.app / "README.md").read_text(), "user changed this during the build")
 
     def test_symlinked_app_rejected(self):  # regression A17
         link = APPS / "linked"

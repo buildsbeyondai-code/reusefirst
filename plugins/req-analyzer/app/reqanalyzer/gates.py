@@ -261,21 +261,30 @@ def test_command(w: Path) -> list[str] | None:
 
 
 def parse_test_output(out: str) -> dict:
-    """Counts from unittest or pytest output."""
-    passed = failed = 0
+    """Counts from unittest or pytest output. Skipped tests are NOT passed tests."""
+    passed = failed = skipped = 0
     m = re.search(r"Ran (\d+) tests?", out)
     if m:
         total = int(m.group(1))
-        f = re.search(r"FAILED \((?:failures=(\d+))?(?:, )?(?:errors=(\d+))?", out)
-        failed = (int(f.group(1) or 0) + int(f.group(2) or 0)) if f else 0
-        passed = total - failed
+        tail = out[m.end():]
+        for key in ("failures", "errors"):
+            f = re.search(rf"(?<!expected )\b{key}=(\d+)", tail)
+            failed += int(f.group(1)) if f else 0
+        for key in ("skipped", "expected failures"):
+            k = re.search(rf"\b{key}=(\d+)", tail)
+            skipped += int(k.group(1)) if k else 0
+        u = re.search(r"\bunexpected successes=(\d+)", tail)
+        failed += int(u.group(1)) if u else 0
+        passed = total - failed - skipped
     else:
-        for n, kind in re.findall(r"(\d+) (passed|failed|error|errors)", out):
+        for n, kind in re.findall(r"(\d+) (passed|failed|errors?|skipped|xfailed|xpassed)", out):
             if kind == "passed":
                 passed += int(n)
+            elif kind in ("skipped", "xfailed"):
+                skipped += int(n)
             else:
                 failed += int(n)
-    return {"passed": passed, "failed": failed}
+    return {"passed": passed, "failed": failed, "skipped": skipped}
 
 
 def run_tests(w: Path, timeout_s: int = TEST_TIMEOUT_S, inside: Path | None = None) -> dict:
@@ -298,7 +307,8 @@ def g_tests(w: Path, result: dict | None = None) -> tuple[dict, dict]:
         return gate("tests", "Test suite passes (re-run independently)", True, FAILED, t["detail"]), t
     if t["status"] == "blocked":
         return gate("tests", "Test suite passes (re-run independently)", True, BLOCKED, t["detail"]), t
-    detail = f"{t['passed']} passed, {t['failed']} failed" + (" (timed out)" if t.get("timed_out") else "") + \
+    detail = f"{t['passed']} passed, {t['failed']} failed, {t.get('skipped', 0)} skipped" + \
+        (" (timed out)" if t.get("timed_out") else "") + \
         f" in {t['duration_s']} s: {t['command']}"
     return gate("tests", "Test suite passes (re-run independently)", True,
                 VERIFIED if t["status"] == "passed" else FAILED, detail, t.get("output", "")), t
@@ -417,6 +427,10 @@ def run_all(w: Path, a: dict, job: dict, baseline: dict | None = None, inside: P
     gs = [g_required_files(w, enhance), g_syntax(w), g_secrets(w)]
     tg, tres = g_tests(w, run_tests(w, inside=inside))
     gs.append(tg)
+    if tres.get("skipped"):
+        gs.append(gate("skipped_tests", "No tests skipped", False, NOT_VERIFIED,
+                       f"{tres['skipped']} test(s) were skipped in the verifier, so what they cover is not verified",
+                       tres.get("output", "")))
     if enhance:
         gs.append(g_regression(baseline, tres))
     sb, deps = g_sbom(w, str(a.get("app_name", w.name)))

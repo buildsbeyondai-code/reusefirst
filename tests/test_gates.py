@@ -41,7 +41,8 @@ class SandboxedGateTests(unittest.TestCase):
             "    def test_offline(self):\n"
             "        with self.assertRaises(OSError):\n"
             "            socket.create_connection(('1.1.1.1', 443), timeout=2)\n"
-            "        self.assertEqual(os.listdir(os.path.expanduser('~')), [])\n")
+            "        self.assertFalse(os.path.exists(os.path.expanduser('~/.ssh')))\n"
+            "        self.assertLessEqual(set(os.listdir(os.path.expanduser('~'))), {'.cache'})\n")
         self.assertEqual(gates.run_tests(w)["status"], "passed")
 
     def test_lint(self):

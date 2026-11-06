@@ -68,6 +68,14 @@ class Spec:
     allow_private_egress: bool = False  # tests only: lets the proxy reach a local fake server
 
 
+def toolchain_paths() -> list[str]:
+    """Read-only, non-secret tool caches mounted into every sandbox (e.g. Playwright's browsers, so browser tests run).
+    REQAN_SANDBOX_TOOLCHAIN overrides the list (colon-separated); only existing paths are mounted."""
+    raw = os.environ.get("REQAN_SANDBOX_TOOLCHAIN")
+    paths = raw.split(":") if raw is not None else [str(Path.home() / ".cache" / "ms-playwright")]
+    return [p for p in paths if p and os.path.isdir(p)]
+
+
 def _system_binds() -> list[str]:
     args = ["--ro-bind", "/usr", "/usr", "--ro-bind", "/etc", "/etc"]
     for d in ("/bin", "/sbin", "/lib", "/lib32", "/lib64", "/libx32"):
@@ -91,7 +99,8 @@ def bwrap_args(spec: Spec, sock_dir: Path, exe: str | None = None) -> list[str]:
             "--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp", "--tmpfs", "/run", "--tmpfs", HOME,  # nosec B108 - fresh tmpfs inside the sandbox
             "--ro-bind", str(INIT.parent), PKG_MOUNT]
     py = os.path.realpath(sys.executable)
-    ro = list(spec.ro_paths)
+    tools = toolchain_paths()
+    ro = list(spec.ro_paths) + tools
     if _outside_usr(py):
         ro.append(sys.base_prefix)
     if exe:
@@ -113,6 +122,9 @@ def bwrap_args(spec: Spec, sock_dir: Path, exe: str | None = None) -> list[str]:
     args += ["--bind", str(sock_dir), SOCK_MOUNT, "--chdir", inside]
     env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": HOME, "LANG": "C.UTF-8", "TMPDIR": "/tmp",  # nosec B108 - sandbox-internal tmpfs
            "TERM": "dumb", "PYTHONDONTWRITEBYTECODE": "1"}
+    pw = next((t for t in tools if t.rstrip("/").endswith("ms-playwright")), None)
+    if pw:
+        env["PLAYWRIGHT_BROWSERS_PATH"] = pw
     if exe and _outside_usr(os.path.realpath(exe)):
         env["PATH"] = os.path.dirname(os.path.realpath(exe)) + ":" + env["PATH"]
     if spec.egress:
@@ -383,7 +395,8 @@ H = os.environ["HOME"]; res = {}
 secret = [os.path.join(H, p) for p in (".ssh", ".aws", ".gnupg", ".config/gh", ".claude/.credentials.json",
           ".mozilla", ".config/google-chrome", ".docker", ".kube", ".netrc", ".git-credentials")]
 res["secrets_hidden"] = [p for p in secret if os.path.exists(p)] == []
-res["home_empty"] = os.path.isdir(H) and os.listdir(H) == []
+allowed = set(json.loads(sys.argv[3]))  # top-level entries created only by read-only toolchain mounts
+res["home_empty"] = os.path.isdir(H) and set(os.listdir(H)) <= allowed
 try:
     open(os.path.join(H, ".probe"), "w").write("x"); os.remove(os.path.join(H, ".probe")); res["home_writable_tmpfs"] = True
 except OSError:
@@ -439,7 +452,9 @@ def self_test(force: bool = False, state_dir: Path | None = None) -> dict:
         Path(hidden).write_text("must not be visible inside the sandbox")
         try:
             r = run(Spec(workdir=work, egress=frozenset({"allowed.invalid"}), memory_mb=512, tasks=64),
-                    [os.path.realpath(sys.executable), "-I", "-c", PROBE, hidden, str(listener.getsockname()[1])],
+                    [os.path.realpath(sys.executable), "-I", "-c", PROBE, hidden, str(listener.getsockname()[1]),
+                     json.dumps(sorted({Path(t).relative_to(HOME).parts[0] for t in toolchain_paths()
+                                        if Path(t).is_relative_to(HOME)}))],
                     timeout_s=60)
             line = next((ln for ln in r["output"].splitlines() if ln.startswith("PROBE")), None)
             if not line:

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.1 — 2026-11-06
+Found by the first real enhancement of a Playwright-based app (the job finder):
+- **Skipped tests no longer count as passed.** The test gate reports `skipped`, and a new advisory gate,
+  `skipped_tests`, marks what they cover as NOT VERIFIED. 1.x and 2.0.0 counted the 6 skipped browser tests as
+  passes.
+- **Browser tests run in the sandbox.** Read-only, non-secret toolchains (Playwright's browsers in
+  `~/.cache/ms-playwright`, overridable with `REQAN_SANDBOX_TOOLCHAIN`) are mounted, so Chromium-based tests run
+  during builds and verification instead of being skipped.
+- **User data and secrets never enter the build.** `data/`, `.env`, `browser-profile/` and `secrets/` are kept out
+  of the enhancement staging copy. The agent cannot read them, so it cannot send them to the model API or change
+  them. They are carried over unchanged at the atomic swap, with crash recovery. App data written during a build is
+  no longer a conflict; only code edits block the swap.
+
 ## 2.0.0 — 2026-11-06 (major: security model and API changes)
 ### Security (breaking)
 - **Builds run in a bubblewrap sandbox:**

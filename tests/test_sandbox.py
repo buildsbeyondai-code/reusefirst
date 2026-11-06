@@ -36,8 +36,11 @@ class IsolationTests(unittest.TestCase):
         self.assertFalse((outside / "pwned").exists())
 
     def test_credential_and_home_read_attempts(self):
-        r, _ = run("import os,glob; print(sorted(glob.glob(os.path.expanduser('~/*')) + glob.glob(os.path.expanduser('~/.*'))))")
-        self.assertEqual(r["output"].strip(), "[]")
+        code = ("import os\nout=[]\nfor d,dirs,files in os.walk(os.path.expanduser('~')):\n"
+                "    dirs[:] = [x for x in dirs if x != 'ms-playwright']\n    out += [os.path.join(d, f) for f in files]\n"
+                "print(sorted(out))")
+        r, _ = run(code)
+        self.assertEqual(r["output"].strip(), "[]")  # only the read-only browser toolchain (no files of the user)
 
     def test_env_is_cleared(self):
         os.environ["REQAN_SECRET_PROBE"] = "s3cret"

@@ -204,9 +204,12 @@ class GateTests(unittest.TestCase):
         self.assertEqual(gates.osv_check([])[0], gates.VERIFIED)
 
     def test_test_output_parsing(self):
-        self.assertEqual(gates.parse_test_output("Ran 5 tests in 0.1s\n\nOK"), {"passed": 5, "failed": 0})
-        self.assertEqual(gates.parse_test_output("Ran 5 tests\nFAILED (failures=1, errors=1)"), {"passed": 3, "failed": 2})
-        self.assertEqual(gates.parse_test_output("== 7 passed, 2 failed in 1s =="), {"passed": 7, "failed": 2})
+        p = gates.parse_test_output
+        self.assertEqual(p("Ran 5 tests in 0.1s\n\nOK"), {"passed": 5, "failed": 0, "skipped": 0})
+        self.assertEqual(p("Ran 5 tests\nFAILED (failures=1, errors=1)"), {"passed": 3, "failed": 2, "skipped": 0})
+        self.assertEqual(p("Ran 92 tests in 13s\n\nOK (skipped=6)"), {"passed": 86, "failed": 0, "skipped": 6})  # regression
+        self.assertEqual(p("Ran 9 tests\nFAILED (errors=1, skipped=2, expected failures=1)"), {"passed": 5, "failed": 1, "skipped": 3})
+        self.assertEqual(p("== 7 passed, 2 failed, 3 skipped in 1s =="), {"passed": 7, "failed": 2, "skipped": 3})
 
     def test_decide(self):
         g = lambda st, m=True: {"name": "g", "mandatory": m, "status": st, "detail": "d"}
