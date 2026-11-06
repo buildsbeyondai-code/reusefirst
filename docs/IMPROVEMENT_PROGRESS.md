@@ -1,25 +1,21 @@
-# Improvement progress (2.0 program)
+# Improvement progress (2.0 programme)
 
-Start commit: 76d9cb2. Branch: improve/2.0-hardening. NOT merged or pushed. Status: **work in progress**.
+Start commit `76d9cb2` (1.13.0). Work branch `improve/2.0-hardening`, merged into `main` as 2.0.0.
 
-## Done (code written; partially verified)
-- Phase 1 audit: docs/AUDIT_BASELINE.md (22 findings, 8 reproduced).
-- New modules: policy.py (GitHub URL parsing, SPDX rules, reuse eligibility), lifecycle.py (state machine),
-  obs.py (redaction, metrics), sandbox.py + sbx_init.py (bwrap with every namespace unshared, allowlisting egress
-  proxy, inbound forwarder, systemd-scope limits, self-test), gates.py (independent verification, CycloneDX SBOM,
-  OSV), reuse.py (sandboxed pinned clones, REUSE_PROVENANCE.md).
-- builder.py: strict number and URL validation; policy-based pre-selection; new BuildManager (state machine,
-  sandboxed Claude, gates, transactional enhance with renameat2, orphan recovery, idempotency, sandboxed launch/stop).
-- VERIFIED: sandbox self-test passes 12/12 isolation checks on this PC. A real `claude -p` ran inside the sandbox;
-  egress was limited to api.anthropic.com, and mcp-proxy.anthropic.com was denied.
+| Phase | Status | Evidence |
+|---|---|---|
+| 1 Forensic audit | done | docs/AUDIT_BASELINE.md (22 findings; 8 reproduced live) |
+| 2 P0 security | done | sandbox.py, server.py, policy.py, reuse.py; docs/SECURITY_MODEL.md, SECURITY_TEST_REPORT.md |
+| 3 Discovery | done (lexical only) | engine.py, sources.py; docs/DISCOVERY_ENGINE.md; benchmark NDCG@10 0.740 → 0.763 |
+| 4 Reuse-or-build decision | done | decision.py, `/api/analyses/<id>/report.md`, `/api/outcomes` |
+| 5 Build engine | done | lifecycle.py, gates.py, builder.py; docs/BUILD_LIFECYCLE.md, QUALITY_GATES.md |
+| 6 Standards and UX | done | decision panel, assessment chips, packages table, gates table, Stop, sandbox status; browser E2E pass |
+| 7 Testing and CI | done locally | 188 tests, 90% coverage, mutation 16/16, fuzz; `.github/workflows/ci.yml` written (**not yet run on GitHub**) |
+| 8 Install and platforms | done | hook and server refuse unsupported platforms clearly; MIGRATION_2.0.md; CHANGELOG.md |
+| 9 Observability | done | obs.py (JSON logs, redaction, metrics), `/api/diagnostics` |
+| 10 Product value | harness only | tools/value_benchmark.py; live runs PENDING (paid) |
+| 12 Final audit | done | docs/FINAL_AUDIT.md: **7.6/10**, evidence-based |
 
-## Not done / blocking
-- Test suite: 106 tests, 8 failures and 5 errors after the refactor (old tests expect 1.x behaviour: pre-tick of the
-  top candidate, `succeeded` from a Claude exit, direct-host fake claude). Tests must be updated and the new tests written
-  (test_security, test_sandbox, test_policy, test_lifecycle, test_gates, test_validation).
-- server.py: auth on all routes, Origin/Sec-Fetch checks, Content-Length/timeout/concurrency limits, stop/diagnostics
-  routes, Idempotency-Key passthrough.
-- engine/sources: provider ids, evidence/compatibility/licence fields, README evidence, npm/crates providers,
-  bounded cache, decision engine, retrieval benchmark.
-- UI updates for the new states, gates and metrics; CI workflow; docs (SECURITY_MODEL, BUILD_LIFECYCLE, etc.).
-- Version bump to 2.0.0, changelog, push and release: NOT done (must not ship with failing tests).
+## Blockers and pending items (need the user)
+- Pushing `.github/workflows/ci.yml` needs the `workflow` scope on the gh token: `gh auth refresh -h github.com -s workflow`.
+- A real end-to-end build in the sandbox, and the live A/B value benchmark, both spend Claude usage.
