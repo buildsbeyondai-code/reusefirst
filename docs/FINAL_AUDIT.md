@@ -1,92 +1,98 @@
-# Final audit (Phase 12) — ReuseFirst 2.0.0
+# Final audit (Phase 12) — ReuseFirst 2.1.1
 
-**Audited:** 2026-11-06. Start commit `76d9cb2` (1.13.0). End: `main` after merge `93388c7` and the README commit.
+**Audited:** 2026-11-06 (re-scored after the first real builds). Start commit `76d9cb2` (1.13.0). End: `main` at
+2.1.1.
 
-**Method:** the modified source was re-opened and each claim below was checked against code and a test or
-measurement run in this session. Where something was not run, it says **NOT VERIFIED**. The rubric and caps are
-the programme's own, unchanged.
+**Method:** each claim below was checked against code, a test, CI or a real run in this session. Where something
+was not run, it says **NOT VERIFIED**. The rubric and caps are unchanged.
 
 ## Evidence summary
-| Check | Command | Result |
+| Check | Result |
+|---|---|
+| Unit, integration, security, sandbox, fuzz, recovery and benchmark tests | **221 tests OK** (39.7 s) |
+| Coverage (branch) | **92%** overall; **92%** for the critical core (sandbox, server, policy, lifecycle, gates, reuse, builder, semantic) |
+| GitHub Actions CI | **passing** on Python 3.11, 3.12 and 3.14 on ubuntu-24.04 (sandbox self-test on a clean runner, ruff, bandit, coverage ≥ 85%, benchmark, packaging, SBOM, pip-audit) plus the mutation job |
+| Mutation check | **22/22 killed** (two equivalent mutants documented) |
+| ruff / bandit (medium+) | clean / 0 findings |
+| Sandbox self-test | 13/13 probes |
+| Nested agent Bash sandbox | a decoy secret under `denyRead` raises PermissionError; `/proc/1/environ` blocked; pypi reachable |
+| Retrieval benchmark (12 queries, assistant labels) | NDCG@10: v1 0.740 → v2 0.763 → v2 + semantic review **0.908** (circular labels) |
+| Browser E2E (Chromium) | PASS: light/dark, 390/320 px, forced colours, keyboard, decision panel, packages |
+| **Real end-to-end enhancement build** | **VERIFIED** (details below) |
+| Live install | 2.1.1 on 5057; sandbox ok; 403 without the token, 403 for other OS users |
+| Product value A/B (with vs without ReuseFirst) | harness ready; **live runs NOT VERIFIED** (paid) |
+| Firefox / WebKit | out of scope by the user's decision (Chrome only) |
+
+## The real build: job finder "unattended auto-apply" (2026-11-06)
+
+| Attempt | Outcome | What ReuseFirst learned or fixed |
 |---|---|---|
-| Unit, integration, security, sandbox, fuzz, E2E-with-fakes | `python3 -m unittest discover -s tests` | **188 tests OK** (29.5 s) |
-| Coverage (branch) | `coverage run …; coverage report` | **90%** overall; **89%** for the critical core (sandbox, server, policy, lifecycle, gates, reuse, builder) |
-| Lint | `ruff check .` (E,F,W,B,S,I,UP,SIM) | clean |
-| Security static analysis | `bandit -r … -ll` | 0 Medium/High (4 annotated false positives) |
-| Sandbox self-test | `sandbox.self_test()` | 13/13 probes pass on WSL2 |
-| Mutation check | `python3 tools/mutate.py` | **16/16 killed** |
-| Retrieval benchmark | `python3 tests/benchmark/run_benchmark.py` | NDCG@10 0.740 → **0.763**, P@5 0.717 → 0.750, R@10 0.724 → 0.771, MRR 0.917 → 0.958 |
-| Browser E2E (Chromium, light + dark, 390 px and 320 px, forced colours, keyboard) | `tests/e2e_browser.py` | PASS against a 2.0 server with the real catalog and real GitHub |
-| Plugin manifest validation | pre-push hook (`claude plugin validate`) | passed (warning: no icon) |
-| Live install | `claude plugin update`, restarted 5057 | 2.0.0 running; `sandbox_ok: true`; 403 without the token, 200 with it; token file 0600 |
-| Real Claude inside the sandbox | one `claude -p` (no tools) | succeeded; egress log shows only api.anthropic.com allowed |
-| Real end-to-end build with real Claude in the 2.0 sandbox | — | **NOT VERIFIED** (spends usage; awaiting approval) |
-| GitHub Actions CI | — | **NOT VERIFIED**: the push of `.github/workflows/ci.yml` was refused because the gh token lacks the `workflow` scope |
-| Firefox / WebKit | — | **NOT VERIFIED** (Chromium only) |
-| Product value A/B (with vs without ReuseFirst) | `tools/value_benchmark.py` | harness ready; **live runs PENDING** (paid) |
+| 1 | FAILED in PREPARING+RUN (exit 127), $0 | Claude was launched via the symlink path, which is not mounted → launch the real binary (2.0.2) |
+| 2 | FAILED: Claude usage limit after 24 min, $6.37; app untouched | Reason shown as "success" → truthful classification; **Resume** added (2.1.0) |
+| 3 (resume) | PARTIALLY_COMPLETED: 120/120 tests (0 skipped), regression and OSV VERIFIED; launch NOT VERIFIED; app untouched | Enhance builds had no port → port detection and a free-port check; **Verify again** (2.1.1) |
+| 4 (verify again, no agent) | **SUCCEEDED**, applied atomically, $0 | Every mandatory gate VERIFIED; launch HTTP 200 via `RMJF_PORT`; `.claude/` leftover stripped; user data and login profile carried over intact |
 
-## Findings from the baseline audit
-All 22 findings were addressed in code, each with a regression test (docs/AUDIT_BASELINE.md):
-- Critical: A1 and A2, unsandboxed builds and launch.
-- High: A3, A4, A6, A7, A8, A10 and A11 (auth, parser DoS, NaN/inf, URL smuggling, unsafe pre-selection,
-  self-certification, in-place enhancement).
-- Medium and low: the rest.
+Earlier fixes from the same app (2.0.1):
+- 6 browser tests had been skipped, and the old parser counted them as passed.
+- Playwright browsers are now mounted.
+- The user's `data/`, `.env` and browser login profile are now kept out of the agent's view.
 
-One more defect was found during 2.0 and fixed: a Python 3.11 syntax error from an f-string that reused its own
-quote character, present since 1.x.
+**Totals:** about $10.37 (model-reported) across the attempts. The final app is 92 → 120 tests. It was restarted on
+5070, and the Unattended screen renders in Chromium with no page errors.
 
-## Remaining limitations (honest)
-1. **Credential in the build sandbox.** Claude's credential file is mounted read-only into the build agent's
-   sandbox, so generated code run during the build could read it. Egress is limited to four hosts, and the secret
-   scan fails builds that leave tokens in files. **Severity: medium.**
-2. **Token from `/api/session`.** Without `REQAN_STRICT_TOKEN=1`, another local OS user could fetch the session
-   token with forged headers. **Low** on the single-user WSL target.
-3. **Dependency installs share the build phase.** The agent's dependency installs (pip/npm to the registries) happen
-   in the same phase as running untrusted code. Installation is not separated from execution.
-4. **Discovery is lexical.** There is no semantic model. Scores are uncalibrated and the benchmark labels were made
-   by the assistant, not independent humans (12 queries, plugin corpus only). Ranking for GitHub, npm and crates.io
-   is not benchmarked.
-5. **Real builds not re-verified.** No real end-to-end build ran on the 2.0 pipeline. The pipeline is verified with
-   a fake Claude CLI and real bubblewrap.
-6. **Coverage short of target.** Coverage is 90% (89% critical core) against the programme's 95% statement / 90%
-   branch target for the core. Branch coverage of the high-risk controls is not at 100%. Server error paths and
-   sandbox resource fallbacks are the main gaps.
-7. **JavaScript not checked.** JS/TS syntax is NOT VERIFIED by the gates (no Node on the verifier).
-8. **Platforms.** Native Windows and macOS are unsupported, and fail clearly.
+**What this proves:**
+- The pipeline fails safely: four outcomes, and the user's app was never left half-changed.
+- It reports truthfully.
+- The recovery features work in real conditions.
 
-## Score (programme rubric)
+## Remaining limitations
+1. **Discovery is lexical unless the paid semantic review is ticked.** Every benchmark label is assistant-made (12
+   queries, plugin corpus). GitHub, npm and crates.io ranking is not benchmarked. Scores are uncalibrated.
+2. **Product value is not measured.** Whether ReuseFirst saves time or money in practice is NOT VERIFIED; the A/B
+   harness exists.
+3. **Installs and code share a phase.** The agent's dependency installs run in the same sandboxed phase as generated
+   code. Egress is limited to package registries, but installation and execution are not separated.
+4. **The agent can read the credential.** The agent process itself can still read the Claude credential (required).
+   Generated code cannot.
+5. **Windows-side access.** Requests from Windows arrive through WSL's root-owned relay, so other Windows users of
+   the same PC are not distinguished.
+6. **Unchecked code paths.** JS/TS syntax is unchecked (no Node in the verifier). The static-analysis gate is
+   advisory and needs the project's own ruff.
+7. **Allowlist friction.** The agent's compound shell commands (`a; b`, `$?`) are refused by the dontAsk allowlist.
+   It retries with simpler commands, which costs turns.
+8. **Coverage short of target.** 92% against the programme's 95% statement target for the core.
+9. **No independent security review** or production reliability data.
+
+## Score (programme rubric, unchanged)
 | Category | Weight | Score | Basis |
 |---|---:|---:|---|
-| Security and supply-chain safety | 20 | 16.0 | Real, tested isolation that fails closed; API auth; validation; licence policy; SBOM/OSV. Minus limitations 1–3; no independent pen test |
-| Functional correctness and reliability | 15 | 12.0 | State machine, transactional enhancement, recovery, idempotency, cancel races, all tested. Minus no real-build run |
-| Discovery and matching intelligence | 15 | 9.0 | Multi-provider, README evidence, decision engine, measured gain. Minus lexical only, uncalibrated, weak labels |
-| Autonomous build quality | 15 | 11.0 | Independent gates decide success. Minus no real 2.0 build, JS unchecked, install/exec not separated |
-| Testing and independent verification | 15 | 11.5 | 188 tests, fuzz/property, mutation 16/16, browser E2E. Minus coverage < 95%, CI not yet run remotely, Chromium only |
+| Security and supply-chain safety | 20 | 18.0 | Two-layer sandbox, credential denied to generated code (decoy-verified), same-user API, fail-closed, SBOM/OSV, licence policy. Minus 3–5 and no independent review |
+| Functional correctness and reliability | 15 | 13.5 | Real enhancement verified end to end; the state machine, resume, verify-again, atomic swap and crash recovery are all exercised. Minus no long-run reliability data |
+| Discovery and matching intelligence | 15 | 11.0 | Multi-provider, README evidence, semantic review, decision engine, measured gains. Minus 1 |
+| Autonomous build quality | 15 | 13.0 | Independent gates decided a real build correctly, including a true partial. Minus 6–7 |
+| Testing and independent verification | 15 | 13.0 | 221 tests, CI green on 3 Pythons, mutation 22/22, fuzz, browser E2E. Minus coverage < 95% |
 | Architecture and maintainability | 5 | 4.5 | Layered, stdlib only, documented decisions |
-| User experience and accessibility | 5 | 4.0 | UEUIS checks pass in the automated E2E; no manual screen-reader pass (automated checks are not full WCAG conformance) |
-| Performance and resource efficiency | 5 | 4.0 | Measured (44 ms offline analysis, 0.07 s sandbox overhead); no network-controlled profiling |
-| Installation, documentation and operations | 5 | 4.0 | Complete docs, migration guide, changelog, fails clearly when unsupported; CI pending |
-| **Total** | **100** | **76.0** | |
+| User experience and accessibility | 5 | 4.0 | Automated UEUIS checks pass; no manual screen-reader pass |
+| Performance and resource efficiency | 5 | 4.0 | Measured; no network-controlled profiling |
+| Installation, documentation and operations | 5 | 4.5 | CI live, migration guide, changelog, clear failures on unsupported platforms |
+| **Total** | **100** | **85.5** | |
 
-**Final rating: 7.6 / 10.** This is up from the programme's 7.1 starting assessment. It is **not** 9.8. No hard
-cap applies below this score:
-- no unresolved critical security issue;
-- no unsafe fallback;
-- no critical data-loss defect;
-- success requires independent verification;
-- tests are reproducible;
-- retrieval is measured.
+**Final rating: 8.6 / 10.** It was 7.1 at the start of the programme and 7.6 for 2.0.0. It is **not 9.8**.
+- No hard cap applies.
+- The "meaningful end-to-end validation" cap is lifted by the verified real build.
 
-The "meaningful end-to-end" cap (9.0) would apply until a real build is verified.
+**Why 9.8 is not claimed:** the rubric needs evidence that does not exist yet:
+- independent human relevance labels;
+- measured product value;
+- an independent security review;
+- separated install and execution phases;
+- core coverage of 95% or more.
 
-**Not claimed:** production readiness or certification. That needs an independent security review and real-world
-reliability data.
+These cannot be produced honestly in this session. Inflating the score would break the programme's own rule.
 
-## What would move the score most
-- Run a real sandboxed build (needs approval) and the A/B value benchmark (needs approval).
-- Get independent human relevance labels across GitHub and npm queries.
-- Add an optional local semantic re-ranker.
-- Separate dependency installation from code execution (two sandboxed phases).
-- Proxy the Claude API from outside the sandbox so the credential never enters it.
-- Raise core coverage to 95%.
-- Grant the `workflow` scope so CI runs on GitHub.
+## Next steps that would move the score most
+1. Run the A/B value benchmark (paid; `tools/value_benchmark.py --i-accept-cost`).
+2. Get human relevance labels for 30+ queries across GitHub, npm and plugins.
+3. Run a two-phase build: a dependency-install phase with registry egress, then an execution phase with no network.
+4. Raise core coverage to 95%.
+5. Commission an external security review.
