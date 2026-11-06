@@ -1,6 +1,8 @@
 """Integration tests: real file catalogs + a fake GitHub HTTP API (no network)."""
+import json
 import os
 import unittest
+from pathlib import Path
 
 import helpers
 from reqanalyzer import engine, sources
@@ -19,6 +21,16 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(nt["url"], "https://github.com/acme/notes")
         km = next(p for p in plugins if p["name"] == "kanban-board")
         self.assertEqual(km["url"], "https://github.com/acme/plugins/tree/HEAD/kanban")
+
+    def test_same_name_different_repos_both_kept(self):  # regression A9
+        import tempfile
+        d = Path(tempfile.mkdtemp())
+        for m, url in (("a", "https://github.com/one/pdf"), ("b", "https://github.com/two/pdf")):
+            (d / "marketplaces" / m / ".claude-plugin").mkdir(parents=True)
+            (d / "marketplaces" / m / ".claude-plugin" / "marketplace.json").write_text(
+                json.dumps({"plugins": [{"name": "pdf", "description": m, "homepage": url}]}))
+        plugins, _ = sources.load_claude_plugins(d)
+        self.assertEqual(sorted(p["id"] for p in plugins), ["marketplace:a/pdf", "marketplace:b/pdf"])
 
     def test_missing_catalog_reports_error(self):
         plugins, errors = sources.load_claude_plugins(helpers.FIXTURES / "does-not-exist")

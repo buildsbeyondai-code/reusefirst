@@ -25,6 +25,8 @@ os.environ["FAKE_CLAUDE_ARGV"] = str(TMP / "rec" / "argv.jsonl")
 os.environ["REQAN_SANDBOX_PASS_ENV"] = "FAKE_CLAUDE_MODE,FAKE_CLAUDE_ARGV"
 os.environ["REQAN_SANDBOX_EXTRA_RW"] = str(TMP / "rec")
 os.environ["REQAN_OSV_URL"] = "http://127.0.0.1:9/offline"  # tests never call OSV; deps-free projects pass anyway
+os.environ["REQAN_NPM_API"] = "http://127.0.0.1:9"  # never the real registries; use_github() points at the fake
+os.environ["REQAN_CRATES_API"] = "http://127.0.0.1:9"
 os.environ["REQAN_NO_GH_CLI"] = "1"  # tests never read the developer's real GitHub token
 os.environ.pop("GITHUB_TOKEN", None)
 os.environ.pop("GH_TOKEN", None)
@@ -65,12 +67,22 @@ REPOS = [
 ]
 
 
+README = {"acme/stripe-invoices": "# Stripe invoices\nCreate invoices, recurring billing, PDF export and Stripe payments.\n"}
+NPM = [{"package": {"name": "invoice-pdf", "description": "Generate PDF invoices with recurring billing",
+                    "keywords": ["invoice", "pdf"], "version": "2.1.0", "date": "2026-09-01T00:00:00Z", "license": "MIT",
+                    "links": {"npm": "https://www.npmjs.com/package/invoice-pdf"}}}]
+CRATES = [{"name": "invoicer", "description": "Invoice PDF generator", "keywords": ["invoice"], "max_stable_version": "0.3.1",
+           "updated_at": "2025-01-01T00:00:00Z", "repository": "https://github.com/x/invoicer", "downloads": 100}]
+
+
 class FakeGitHub:
     """Serves /search/repositories. mode: ok | ratelimit | error | empty."""
 
     def __init__(self, mode="ok"):
         self.mode = mode
-        self.queries = []
+        self.queries = []  # GitHub search requests only
+        self.other = []    # README, npm and crates.io requests
+        self.auth = None
         outer = self
 
         class H(BaseHTTPRequestHandler):
@@ -78,13 +90,27 @@ class FakeGitHub:
                 pass
 
             def do_GET(self):
-                outer.queries.append(self.path)
-                outer.auth = self.headers.get("Authorization")
+                if self.path.startswith("/search/"):
+                    outer.queries.append(self.path)
+                    outer.auth = self.headers.get("Authorization")
+                else:
+                    outer.other.append(self.path)
                 if outer.mode == "ratelimit":
                     self.send_response(403); self.end_headers(); return
                 if outer.mode == "error":
                     self.send_response(500); self.end_headers(); return
-                body = json.dumps({"items": [] if outer.mode == "empty" else REPOS}).encode()
+                path = self.path.split("?", 1)[0]
+                if path.endswith("/readme"):
+                    text = README.get(path.split("/")[2] + "/" + path.split("/")[3])
+                    if text is None:
+                        self.send_response(404); self.end_headers(); return
+                    body = text.encode()
+                elif path == "/-/v1/search":
+                    body = json.dumps({"objects": [] if outer.mode == "empty" else NPM}).encode()
+                elif path == "/api/v1/crates":
+                    body = json.dumps({"crates": [] if outer.mode == "empty" else CRATES}).encode()
+                else:
+                    body = json.dumps({"items": [] if outer.mode == "empty" else REPOS}).encode()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -105,7 +131,7 @@ def use_fixture_catalog(name="plugins"):
 
 
 def use_github(fake):
-    sources.GITHUB_API = fake.url
+    sources.GITHUB_API = sources.NPM_API = sources.CRATES_API = fake.url
     sources._cache.clear()
     sources._token_tried = False
     sources._token = None
