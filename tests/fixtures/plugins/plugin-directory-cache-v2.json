@@ -1,0 +1,5 @@
+{"schemaVersion":2,"listings":[
+ {"name":"invoice-maker","summary":"Create PDF invoices with recurring billing and Stripe payments","source":{"repository":{"url":"https://github.com/acme/invoice-maker"}},"checks":{"review":{"state":"done"}}},
+ {"name":"kanban-board","summary":"Kanban task board for teams","source":{"repository":{"url":"https://github.com/acme/plugins","path":"kanban"}}},
+ {"name":"weather-skill","summary":"Show the weather forecast","source":{"repository":{"url":"https://github.com/acme/weather"}}}
+]}

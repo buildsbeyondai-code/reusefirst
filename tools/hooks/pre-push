@@ -1,0 +1,6 @@
+#!/bin/sh
+# Release boundary: full suite + manifest validation must pass before push.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+python3 -m unittest discover -s tests -q
+command -v claude >/dev/null && claude plugin validate . && claude plugin validate plugins/req-analyzer

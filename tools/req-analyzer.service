@@ -1,0 +1,15 @@
+# OPTIONAL always-on autostart (not installed). To enable:
+#   cp tools/req-analyzer.service ~/.config/systemd/user/ && systemctl --user enable --now req-analyzer
+[Unit]
+Description=Requirement Reuse Analyzer web UI (http://127.0.0.1:5057/)
+
+[Service]
+WorkingDirectory=%h/req-analyzer/plugins/req-analyzer/app
+Environment=PYTHONPATH=%h/req-analyzer/plugins/req-analyzer/app
+ExecStart=/usr/bin/python3 -m reqanalyzer.server --port 5057
+Restart=on-failure
+RestartPreventExitStatus=76
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=default.target

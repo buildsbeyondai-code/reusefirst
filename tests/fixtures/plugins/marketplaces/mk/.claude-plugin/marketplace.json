@@ -1,0 +1,4 @@
+{"name":"mk","plugins":[
+ {"name":"invoice-maker","description":"duplicate name must be ignored"},
+ {"name":"note-taker","description":"Markdown notes with search","category":"productivity","source":{"source":"github","repo":"acme/notes"}}
+]}
