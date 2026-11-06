@@ -32,10 +32,11 @@ def reuse_cost(c: dict, n_caps: int) -> dict | None:
     maint = MAINT.get((c.get("maintenance") or {}).get("state", "unknown"), 1.0)
     conf = (c.get("evidence") or {}).get("confidence", 25)
     uncertainty = (100 - conf) / 25  # weaker evidence = wider range
-    low = missing * 1.0 + integ + lic + maint
-    high = missing * 2.0 + integ * 2 + lic * 2 + maint * 2 + uncertainty + 0.25 * n_caps
+    adapt = 0.2 * n_caps  # learning and adapting someone else's codebase grows with the size of the requirement
+    low = missing * 1.0 + integ + lic + maint + adapt
+    high = missing * 2.0 + integ * 2 + lic * 2 + maint * 2 + uncertainty + adapt * 2
     return {"low": round(low, 1), "high": round(high, 1), "mid": round((low + high) / 2, 1),
-            "parts": {"missing_capabilities": missing, "integration": integ, "licence_overhead": lic,
+            "parts": {"adaptation": round(adapt, 1), "missing_capabilities": missing, "integration": integ, "licence_overhead": lic,
                       "maintenance_exposure": maint, "evidence_uncertainty": round(uncertainty, 1)}}
 
 
@@ -80,6 +81,7 @@ def decide(result: dict) -> dict:
         "confidence": "low" if not best or best["confidence"] < 50 else "medium" if best["confidence"] < 70 else "medium-high",
         "assumptions": [
             "1 unit = building and testing one requirement capability from scratch",
+            "adapting an existing codebase: 0.2-0.4 units per requirement capability",
             "integration cost: 1 when the language matches, 2 when unknown, 4 when incompatible",
             "licence overhead: 0 permissive, 1.5 needs review; no-licence code cannot be copied",
             "maintenance exposure: 0 active, 1 stale/unknown, 2.5 unmaintained, 3 archived",
