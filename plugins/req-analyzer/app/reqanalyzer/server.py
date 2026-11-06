@@ -315,7 +315,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(400, {"error": "top must be an integer"})
         try:
             result = engine.analyze(body.get("requirement"), body.get("keywords"),
-                                    top=top, github=bool(body.get("github", True)))
+                                    top=top, github=bool(body.get("github", True)), semantic=body.get("semantic") is True)
         except (engine.InputError, TypeError, ValueError) as e:
             return self._json(400, {"error": str(e)})
         except Exception:  # unexpected: log with traceback, return a structured error, keep serving

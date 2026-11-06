@@ -35,6 +35,7 @@ def main(argv=None) -> int:
     ap.add_argument("-k", "--keyword", action="append", default=[], help="extra keyword (repeatable)")
     ap.add_argument("--top", type=int, default=10)
     ap.add_argument("--no-github", action="store_true")
+    ap.add_argument("--semantic", action="store_true", help="Claude reviews the top candidates (uses your Claude usage)")
     ap.add_argument("--markdown", action="store_true")
     a = ap.parse_args(argv)
     text = a.requirement
@@ -44,7 +45,7 @@ def main(argv=None) -> int:
     elif not text and not sys.stdin.isatty():
         text = sys.stdin.read()
     try:
-        r = engine.analyze(text or "", a.keyword, top=a.top, github=not a.no_github)
+        r = engine.analyze(text or "", a.keyword, top=a.top, github=not a.no_github, semantic=a.semantic)
     except engine.InputError as e:
         print(f"error: {e}", file=sys.stderr)
         return 2

@@ -412,21 +412,34 @@ def _clean_question(q: dict, taken: set[str]) -> dict | None:
 
 
 def run_claude_json(prompt: str, schema: dict, timeout: int = INPUTS_TIMEOUT_S) -> dict:
+    """Structured, tool-less Claude call, run INSIDE the sandbox (Claude API egress only, no MCP servers): its prompt can
+    hold untrusted text (READMEs, an app's docs), so even a model that follows injected text has nothing to act with."""
     exe = claude_bin()
     if not exe:
         raise BuildError("Claude Code CLI not found (install it or set REQAN_CLAUDE_BIN)")
-    cmd = [exe, "-p", prompt, "--output-format", "json", "--tools", "", "--no-session-persistence",
+    exe = os.path.realpath(exe)
+    cmd = [exe, "-p", prompt, "--output-format", "json", "--tools", "", "--strict-mcp-config", "--no-session-persistence",
            "--json-schema", json.dumps(schema)]
+    import tempfile
+    work = Path(tempfile.mkdtemp(prefix="reusefirst-ai-"))
+    spec = claude_spec(work)
+    spec = sandbox.Spec(**{**spec.__dict__, "egress": sandbox.EGRESS_CLAUDE, "memory_mb": 2048, "tasks": 256})
     try:
-        r = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
-    except subprocess.TimeoutExpired:
-        raise BuildError(f"Claude did not answer within {timeout} s") from None
+        r = sandbox.run(spec, cmd, timeout_s=timeout, exe=exe)
+    except sandbox.SandboxUnavailable as e:
+        raise BuildError(f"no verified sandbox for the Claude call: {e}") from None
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    if r["timed_out"]:
+        raise BuildError(f"Claude did not answer within {timeout} s")
+    line = next((ln for ln in reversed(r["output"].splitlines()) if ln.startswith("{")), "")
     try:
-        out = json.loads(r.stdout)
+        out = json.loads(line)
     except ValueError:
-        raise BuildError(f"Claude returned no JSON (exit {r.returncode}): {(r.stderr or r.stdout)[-300:]}") from None
+        raise BuildError(f"Claude returned no JSON (exit {r['code']}): {r['output'][-300:]}") from None
     if out.get("is_error") or not isinstance(out.get("structured_output"), dict):
         raise BuildError(f"Claude error: {str(out.get('result') or out.get('subtype'))[:300]}")
+    out["structured_output"]["_cost_usd"] = out.get("total_cost_usd")
     return out["structured_output"]
 
 

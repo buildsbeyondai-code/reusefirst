@@ -42,7 +42,10 @@ function assessCell(x) {
     x.compatibility && x.compatibility !== "unknown" ? el("span", { class: "tag c-" + (x.compatibility === "pass" ? "success" : "danger"),
       title: (x.compatibility_reasons || []).join("; ") }, "compat " + x.compatibility) : null,
     m.state && m.state !== "unknown" ? el("span", { class: "tag" + (m.state === "active" ? "" : " c-warning") }, m.state) : null,
-    ev.readme_inspected ? el("span", { class: "tag c-violet", title: "Concepts confirmed in the README: " + (ev.confirmed_in_readme || []).join(", ") }, "README checked") : null));
+    ev.readme_inspected ? el("span", { class: "tag c-violet", title: "Concepts confirmed in the README: " + (ev.confirmed_in_readme || []).join(", ") }, "README checked") : null,
+    x.semantic ? el("span", { class: "tag c-" + (x.semantic.fit >= 70 ? "success" : x.semantic.fit >= 40 ? "warning" : "neutral"),
+      title: `Claude's judgement (uncalibrated): ${x.semantic.reason} Covers: ${x.semantic.covers.join(", ") || "—"}. Gaps: ${x.semantic.gaps.join(", ") || "—"}.` },
+      `fit ${x.semantic.fit}% (Claude)`) : null));
 }
 function renderDecision(d) {
   const box = $("#decision");
@@ -315,6 +318,7 @@ function render(r) {
   $("#kc").textContent = `(top ${(r.packages || []).length})`;
   labelCells("#kt");
   $("#method").textContent = "How relevance is computed: " + r.method + (r.confidence_mode ? " Mode: " + r.confidence_mode + "." : "") +
+    (r.semantic ? ` Claude review: ${r.semantic.status}, ${r.semantic.reviewed} candidates` + (r.semantic.cost_usd != null ? `, model-reported $${r.semantic.cost_usd.toFixed(2)}.` : ".") : "") +
     (r.stale ? " Some GitHub results come from a cache older than 10 minutes." : "");
   labelCells("#pt"); labelCells("#gt");
   $("#filter").value = ""; applyFilter();
@@ -340,10 +344,11 @@ $("#f").addEventListener("submit", async (ev) => {
   markReq(false);
   setBusy($("#go"), true, "Analyzing…");
   document.title = "Analyzing… · Reuse-First Builder";
-  status.textContent = $("#gh").checked ? "Analyzing… (searching GitHub, up to ~20 s)" : "Analyzing…";
+  status.textContent = $("#sem").checked ? "Analyzing… then Claude reviews the top candidates (about 30–90 s)"
+    : $("#gh").checked ? "Analyzing… (searching GitHub, up to ~20 s)" : "Analyzing…";
   skeleton();
   try {
-    const data = await api("/api/analyze", { method: "POST", body: JSON.stringify({ requirement, github: $("#gh").checked, top: 10 }) });
+    const data = await api("/api/analyze", { method: "POST", body: JSON.stringify({ requirement, github: $("#gh").checked, top: 10, semantic: $("#sem").checked }) });
     render(data);
     status.textContent = data.saved ? `Done. Saved ${fmtTime(data.saved.created_at)}.` : "Done.";
     status.className = "ok";

@@ -1,6 +1,7 @@
 """Retrieval-quality regression guard: the 2.0 ranker must not fall below the 1.x baseline on the labelled set."""
 import contextlib
 import io
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -28,3 +29,13 @@ class BenchmarkTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SemanticBenchmarkTests(unittest.TestCase):
+    def test_cached_semantic_rerank_not_worse(self):
+        import run_semantic
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(run_semantic.main(), 0)  # offline: uses the committed judgements
+        r = json.loads(out.getvalue())
+        for m in ("P@5", "R@10", "MRR", "NDCG@10"):
+            self.assertGreaterEqual(r["v2 + semantic"][m], r["v2 (2.0)"][m], m)

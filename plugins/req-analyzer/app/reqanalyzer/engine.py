@@ -172,8 +172,27 @@ def _score_text(name: str, desc: str, topics) -> list[str]:
     return textscore.terms(" ".join([nm, textscore.clip(desc), " ".join(topics or []).replace("-", " ")]))
 
 
+def semantic_stage(requirement: str, result: dict, readmes: dict) -> dict:
+    """Optional Claude review of the top candidates (semantic.py); recommendations are recomputed with the fit."""
+    from . import builder, semantic
+    cands = sorted(result["github"] + result["claude_plugins"] + result["packages"],
+                   key=lambda c: (-c["closeness"], c.get("id", "")))
+    try:
+        st = semantic.review(requirement, cands, readmes, builder.run_claude_json)
+    except builder.BuildError as e:
+        METRICS.inc("semantic_failures")
+        return {"status": "failed", "reviewed": 0, "error": str(e)[:300]}
+    for c in cands:
+        if c.get("semantic"):
+            c["recommendation"] = recommend({**c, "coverage": c["semantic"]["fit"]})
+            c["auto_reuse_eligible"], c["not_eligible_because"] = policy.auto_reuse_eligible(
+                {**c, "coverage": min(c["coverage"], c["semantic"]["fit"])})  # both signals must agree
+    result["confidence_mode"] = "lexical + Claude semantic review of the top candidates"
+    return st
+
+
 def analyze(requirement: str, keywords: list[str] | None = None, top: int = 10, github: bool = True,
-            packages: bool = True, inspect: bool = True) -> dict:
+            packages: bool = True, inspect: bool = True, semantic: bool = False) -> dict:
     requirement, keywords = validate(requirement, keywords)
     top = max(1, min(int(top), 50))
     t0 = time.time()
@@ -195,6 +214,7 @@ def analyze(requirement: str, keywords: list[str] | None = None, top: int = 10, 
     plugin_results = [_enrich(r, prof, None, rc) for r in plugin_results[:top]]
 
     gh_results, errors, queries = [], list(cat["errors"]), []
+    readmes: dict[str, str | None] = {}
     github_status = "skipped"
     stale = False
     if github and rc:
@@ -218,7 +238,6 @@ def analyze(requirement: str, keywords: list[str] | None = None, top: int = 10, 
             gh_results.append(rec | textscore.score(rc, _score_text(rec["name"], rec["description"], rec["topics"]), idf, surface))
         gh_results.sort(key=lambda r: (-r["closeness"], -r["stars"], r["id"]))
         gh_results = gh_results[:top]
-        readmes: dict[str, str | None] = {}
         if inspect and github_status != "rate-limited":
             with ThreadPoolExecutor(max_workers=4) as ex:
                 futs = {ex.submit(sources.fetch_readme, r["name"]): r["name"] for r in gh_results[:EVIDENCE_TOP]}
@@ -277,6 +296,8 @@ def analyze(requirement: str, keywords: list[str] | None = None, top: int = 10, 
         "method": METHOD,
         "confidence_mode": "lexical-only (reduced confidence: no semantic model)",
     }
+    if semantic:
+        result["semantic"] = semantic_stage(requirement, result, readmes if github and rc else {})
     from . import decision
     result["decision"] = decision.decide(result)
     result["verdict"] = decision.VERDICT_TEXT[result["decision"]["recommendation"]]

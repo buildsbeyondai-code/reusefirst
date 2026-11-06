@@ -34,7 +34,8 @@ def reuse_cost(c: dict, n_caps: int) -> dict | None:
     lic = LICENCE.get((c.get("licence") or {}).get("reuse", "review"), 1.5)
     if lic is None:
         return None
-    missing = len(c.get("missing") or [])
+    sem = c.get("semantic")
+    missing = len(sem.get("gaps") or []) if sem else len(c.get("missing") or [])
     integ = INTEGRATION.get(c.get("compatibility", "unknown"), 2.0)
     maint = MAINT.get((c.get("maintenance") or {}).get("state", "unknown"), 1.0)
     conf = (c.get("evidence") or {}).get("confidence", 25)
@@ -51,8 +52,10 @@ def decide(result: dict) -> dict:
     caps = capabilities(len(result.get("concepts") or []))
     build = {"low": round(1.0 * caps + 2, 1), "high": round(2.0 * caps + 4, 1)}
     build["mid"] = round((build["low"] + build["high"]) / 2, 1)
-    cands = [c for c in (result.get("github") or []) + (result.get("claude_plugins") or []) + (result.get("packages") or [])
-             if c.get("coverage", 0) >= 30]
+    def cov(c):  # with a semantic review, functional fit replaces lexical coverage
+        return (c.get("semantic") or {}).get("fit", c.get("coverage", 0))
+    cands = [{**c, "coverage": cov(c)} for c in (result.get("github") or []) + (result.get("claude_plugins") or [])
+             + (result.get("packages") or []) if cov(c) >= 30]
     cands.sort(key=lambda c: (-c.get("coverage", 0), -c.get("closeness", 0), c.get("id", "")))
     options = []
     for c in cands[:3]:

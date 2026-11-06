@@ -13,6 +13,17 @@ if rec:
     with open(rec, "a") as f:
         f.write(json.dumps({"cwd": os.getcwd(), "argv": args}) + "\n")
 
+if "--json-schema" in args and '"fit"' in args[args.index("--json-schema") + 1]:  # semantic review
+    import re
+    prompt = args[args.index("-p") + 1]
+    ids = re.findall(r'<untrusted id="([^"]+)"', prompt)
+    if mode == "semantic-error":
+        print(json.dumps({"is_error": True, "subtype": "error_during_execution", "result": "boom"})); sys.exit(1)
+    items = [{"id": i, "fit": 150 if n == 0 else 20, "covers": ["invoices"], "gaps": ["pdf", "stripe"],
+              "kind": "partial", "reason": "test"} for n, i in enumerate(ids)] + [{"id": "not-asked", "fit": 99, "reason": "x"}]
+    print(json.dumps({"is_error": False, "subtype": "success", "total_cost_usd": 0.02, "structured_output": {"items": items}}))
+    sys.exit(0)
+
 if "--json-schema" in args:  # required_inputs
     if mode == "inputs-error":
         print(json.dumps({"is_error": True, "subtype": "error_during_execution", "result": "boom"})); sys.exit(1)
