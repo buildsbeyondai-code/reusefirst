@@ -117,6 +117,7 @@
     <div id="dist" class="dist"></div>
     <p id="meta" class="meta desc-only"></p>
     <div id="errors"></div>
+    <section id="decision" class="decision" aria-labelledby="dec-h"></section>
     <div class="toolbar">
       <div class="search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
         <label for="filter" class="sr-only">Filter results</label>
@@ -124,9 +125,11 @@
       <span class="count" id="fcount" aria-live="polite"></span>
     </div>
     <h2 id="pt-h" class="sect k3"><svg class="ic" aria-hidden="true"><use href="#i-plug"/></svg> Claude plugins <span class="count" id="pc"></span></h2>
-    <div class="tw" role="region" aria-labelledby="pt-h" tabindex="0"><table id="pt" aria-labelledby="pt-h"><thead><tr><th scope="col">Closeness</th><th scope="col">Plugin</th><th scope="col">Description</th><th scope="col">Not covered</th></tr></thead><tbody></tbody></table></div>
+    <div class="tw" role="region" aria-labelledby="pt-h" tabindex="0"><table id="pt" aria-labelledby="pt-h"><thead><tr><th scope="col">Relevance</th><th scope="col">Plugin</th><th scope="col">Description</th><th scope="col">Not covered</th></tr></thead><tbody></tbody></table></div>
     <h2 id="gt-h" class="sect k1"><svg class="ic" aria-hidden="true"><use href="#i-branch"/></svg> GitHub open source <span class="count" id="gc"></span></h2>
-    <div class="tw" role="region" aria-labelledby="gt-h" tabindex="0"><table id="gt" aria-labelledby="gt-h"><thead><tr><th scope="col">Closeness</th><th scope="col">Repository</th><th scope="col">Description</th><th scope="col">Stars · License · Updated</th><th scope="col">Not covered</th></tr></thead><tbody></tbody></table></div>
+    <div class="tw" role="region" aria-labelledby="gt-h" tabindex="0"><table id="gt" aria-labelledby="gt-h"><thead><tr><th scope="col">Relevance</th><th scope="col">Repository</th><th scope="col">Description</th><th scope="col">Stars · License · Updated</th><th scope="col">Not covered</th></tr></thead><tbody></tbody></table></div>
+    <h2 id="kt-h" class="sect k5"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg> Packages (npm, crates.io) <span class="count" id="kc"></span></h2>
+    <div class="tw" role="region" aria-labelledby="kt-h" tabindex="0"><table id="kt" aria-labelledby="kt-h"><thead><tr><th scope="col">Relevance</th><th scope="col">Package</th><th scope="col">Description</th><th scope="col">Assessment</th><th scope="col">Not covered</th></tr></thead><tbody></tbody></table></div>
     <p class="method small desc-only" id="method"></p>
   </section>
 </section>
@@ -165,9 +168,12 @@
     <p class="meta" id="job-meta"></p>
     <div class="row"><button type="button" id="cancel" class="danger"><svg class="ic" aria-hidden="true"><use href="#i-stop"/></svg> Cancel build</button>
       <button type="button" id="launch" class="secondary" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg> Launch app</button>
+      <button type="button" id="stop-app" class="secondary" hidden><svg class="ic" aria-hidden="true"><use href="#i-stop"/></svg> Stop app</button>
       <span id="launch-out" class="meta" role="status"></span></div>
     <h2 id="ev-h" class="sect k4"><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg> Progress</h2>
     <div class="events-wrap" role="region" aria-labelledby="ev-h" tabindex="0"><ol id="events" class="events"></ol></div>
+    <div id="gates-wrap" hidden><h2 id="gates-h" class="sect k1"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg> Independent verification</h2>
+      <div class="tw" role="region" aria-labelledby="gates-h" tabindex="0"><table id="gates" aria-labelledby="gates-h"><thead><tr><th scope="col">Check</th><th scope="col">Status</th><th scope="col">Detail</th></tr></thead><tbody></tbody></table></div></div>
     <div id="report-wrap" hidden><h2 id="rep-h" class="sect k2"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg> Completion report</h2><pre id="report" tabindex="0" aria-labelledby="rep-h"></pre></div>
   </section>
   <h2 id="bt-h" class="sect k5"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg> Recent builds</h2>

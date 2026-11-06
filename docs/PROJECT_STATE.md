@@ -1,4 +1,4 @@
-# Project state — 2026-11-06 (v1.13.0)
+# Project state — 2026-11-06 (v2.0.0)
 
 Done:
 - v1.0: analyzer, Analyze tab, CLI, Claude plugin (command, skill, SessionStart hook), local marketplace; installed (user scope).
@@ -57,6 +57,19 @@ Done:
 - v1.13.0: the `/req-analyze` command and the `requirement-analysis` skill merged into ONE skill `reusefirst`
   (analyze, build/enhance via the UI or API with user confirmation, status), so the plugin shows one entry.
 
+- v2.0.0 (2026-11-06): the 9.8+ hardening programme (OneDrive OPEN SOURCE/REUSE FIRST/ReuseFirst_9_8_Plus_Master_Prompt.md).
+  - **Security:** bubblewrap sandbox with egress allowlist proxy, failing closed; token on every API route; strict
+    validation.
+  - **Reuse:** reuse policy, pinned clones and provenance; SBOM and OSV checks.
+  - **Builds:** state machine, independent verification gates, transactional enhancement, sandboxed launch with Stop.
+  - **Discovery:** multi-stage discovery (npm, crates.io, README evidence) with a reuse-vs-build decision; labelled
+    benchmark.
+  - **Quality:** 188 tests, 90% coverage, mutation 16/16, CI.
+  - Audit: docs/AUDIT_BASELINE.md (before) and docs/FINAL_AUDIT.md (after).
+
 Open / next:
+- A real end-to-end build with real Claude inside the 2.0 sandbox (spends usage; needs user approval).
+- Live A/B value benchmark (`tools/value_benchmark.py --i-accept-cost`), and independent human relevance labels.
+- Semantic re-ranking (D21); calibration once outcome data exists.
 - Optional always-on autostart (`tools/req-analyzer.service`) — needs user approval.
 - Optional semantic re-ranking for the Analyze tab.

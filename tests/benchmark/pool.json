@@ -1,0 +1,1202 @@
+{
+ "q01": [
+  {
+   "id": "plugin-directory:https://github.com/referent-law/claude-plugin/",
+   "name": "Referent",
+   "description": "Legal AI Native CRM for law firms. Connects Claude to your firm's workspace over MCP: clients, matters, tasks, time tracking, calendar, documents, and billing.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/tomhoupt/lessadminhq-plugins/plugins/invoice-matcher",
+   "name": "Invoice Matcher",
+   "description": "Matches bank deposits to open invoices and shows what's paid, unpaid, and needs a look. Flags lump sums, sets aside refunds and fees, and never guesses quietly.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/indie-technologies/found-claude-plugin/",
+   "name": "Found",
+   "description": "Work with your Found business banking and bookkeeping in Claude: check balances, export transactions, close the month, reconcile accounts, review profit and loss, and chase unpaid invoices. Read-only.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/thebutler202510/rangeroof-portal-plugin/",
+   "name": "Range Roofing Portal",
+   "description": "Ask about your commercial roofs with the Range Roofing client portal: properties, roof sections, deficiencies, projects, warranties, invoices, budgets, weather alerts and uploaded documents. Read-only, scoped to your portal account.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/mypropper/skills/",
+   "name": "Propper",
+   "description": "Create, send, and track agreements for e-signature \u2014 generate documents from templates, place signature fields, route for signing, and monitor status.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/kotaroyamame/formal-agent-contracts/",
+   "name": "formal-agent-contracts",
+   "description": "Formal methods toolkit for multi-agent development: define agent contracts in VDM-SL, generate Phase 2 design documents (PROTOCOL.md, API-SIGNATURES.md), verify specifications, auto-prove with Z3, derive database schemas (DDL) with deviation tracking and invariant traceability, generate code scaffol",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/cavada76/invoice-generator/",
+   "name": "Invoice Generator",
+   "description": "Invoice generator: turn \"invoice Acme for 12 hours at 90 EUR\" into a professional PDF invoice with tax, totals, due date and payment details.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/aqtos/aqtos-plugins/plugins/aqtos",
+   "name": "Aqtos",
+   "description": "Work in Aqtos from Claude: find and update tasks, projects, clients, invoices and more, as yourself and with your own permissions.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/persyst-ai/persyst-claude-plugin/",
+   "name": "Persyst",
+   "description": "Give every team and client exactly the access they need: company-wide permissions, one connector across all your clients' tools, smart search across documents and tasks, and access to your code.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/postman-devrel/postman-claude-code-plugin/",
+   "name": "postman",
+   "description": "Full API lifecycle management for Claude Code. Sync collections, generate client code, discover APIs, run tests, create mocks, publish docs, and audit security. Powered by the Postman MCP Server.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/unipaas/agent-skills/",
+   "name": "unipaas",
+   "description": "Building, wiring, or reviewing a Unipaas embedded-payments integration for a platform or marketplace - the /authorize access-token flow, accepting payments (Checkout Page, Web SDK secure fields, Pay-in API), client-side buyer checkout, vendor onboarding, accounts, payouts, subscriptions, Direct Debi",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/starburstlabs/wealthbox-plugin/",
+   "name": "Wealthbox",
+   "description": "Advisor workflows for Wealthbox CRM: onboarding data orchestration, client service request tracking, recommendation and suitability records, client meeting preparation, and identifying clients affected by external changes.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/thiagosalvatore/legalizaobra-plugins/plugins/legalizaobra",
+   "name": "LegalizaObra",
+   "description": "Regularize the INSS of construction works in Brazil: manage clients, obras and pedreiros, simulate INSS costs, send obras to eSocial and generate the monthly DARF.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/migration-to-aws",
+   "name": "migration-to-aws",
+   "description": "Plan a migration from Google Cloud Platform (and OpenAI/Gemini AI workloads) to AWS. Analyzes your Infrastructure-as-Code files, app code, and GCP billing data to discover resources, design an AWS architecture, estimate costs, and generate migration artifacts \u2014 including AI-provider mapping to Amazo",
+   "category": "development"
+  },
+  {
+   "id": "plugin-directory:https://github.com/nogbase/nogbase-ai-plugin/nogbase",
+   "name": "Nogbase",
+   "description": "Real-estate sales workflows on Nogbase: the Nogbase connector with four skills for branded sales offers with every payment-plan installment, client shortlists from a buyer brief, project briefs in English or Arabic, and deal checks that present Nogbase's investment estimate for a unit. Read-only: it",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/cavada76/pdf-to-excel/",
+   "name": "Pdf To Excel",
+   "description": "Convert PDF to Excel: extract tables from bank statements, invoices and reports into a clean .xlsx with real numbers, dates and merged multi-page tables.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/pdf-maker-automate-documents/claude-code-plugin/",
+   "name": "The PDF Maker",
+   "description": "Call THE PDF MAKER API from Claude Code: create HTML templates, list templates, read placeholders, check plan usage, and generate PDFs from JSON.",
+   "category": ""
+  }
+ ],
+ "q02": [
+  {
+   "id": "marketplace:claude-plugins-official/github",
+   "name": "github",
+   "description": "Official GitHub MCP server for repository management. Create issues, manage pull requests, review code, search repositories, and interact with GitHub's full API directly from Claude Code.",
+   "category": "productivity"
+  },
+  {
+   "id": "plugin-directory:https://github.com/anthropics/claude-plugins-official/external_plugins/github",
+   "name": "github",
+   "description": "Official GitHub MCP server for repository management. Create issues, manage pull requests, review code, search repositories, and interact with GitHub's full API directly from Claude Code.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/sergicoder/prism/",
+   "name": "prism",
+   "description": "A Claude Code plugin that adds multi-profile code review, conventional commits, branching, and PR workflows to any repo. It auto-detects your stack and runs security, quality, performance, documentation, and testing reviewers in parallel. Works both locally via slash commands and as an automated CI ",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/the01geek/prflow/",
+   "name": "PRFlow",
+   "description": "Turn feature requests into review-ready pull requests: issue, implementation, tests, a review-and-fix loop, and docs. Runs locally or on GitHub Actions, and is built for complex brownfield repos. Each week its retrospective reads what you actually merged and proposes improvements to your skill exten",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/better-isms/aevral-plugin/",
+   "name": "Aevral",
+   "description": "Aevral is an AI security reviewer for GitHub pull requests. Setup skill for the Aevral GitHub App: reviews look for access control, business logic, injection, XSS, SSRF, path traversal, and LLM-integration flaws, with a suggested fix you apply. Public repos are free up to 500 reviews per organizatio",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/code-review",
+   "name": "code-review",
+   "description": "Automated code review for pull requests using multiple specialized agents with confidence-based scoring",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/better-isms/heygrc-plugin/",
+   "name": "heyGRC",
+   "description": "GRC compliance review for your pull requests. heyGRC reviews each PR against ISO 27001, SOC 2, GDPR, DORA, NIS 2, the EU AI Act and your own company profile, then posts inline findings, a neutral check run, and a sticky summary. Public repos are free.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/code-review",
+   "name": "code-review",
+   "description": "Automated code review for pull requests using multiple specialized agents with confidence-based scoring to filter false positives",
+   "category": "productivity"
+  },
+  {
+   "id": "plugin-directory:https://github.com/vandal337/claude-code-review-council/",
+   "name": "claude-code-review-council",
+   "description": "Six-specialist code review orchestrator (correctness, security, policy/trust-boundary, test-evidence, architecture, interface) for a working tree or pull request diff",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/greptile",
+   "name": "greptile",
+   "description": "AI code review agent for GitHub and GitLab. View and resolve Greptile's PR review comments, run reviews on your working branch, and search your organization's knowledge base and coding patterns, directly from Claude Code.",
+   "category": "development"
+  },
+  {
+   "id": "plugin-directory:https://github.com/greptileai/claude-plugin/plugins/greptile",
+   "name": "greptile",
+   "description": "AI code review agent for GitHub and GitLab. View and resolve Greptile's PR review comments, run reviews on your working branch, and search your organization's knowledge base and coding patterns, directly from Claude Code.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/frankieramirez/mana/",
+   "name": "mana",
+   "description": "Agent skills, cast as spells: multi-reviewer code review, PR feedback resolution without comment noise, sustained PR monitoring and repair, replies that read like you typed them, comment removal, one question repo setup for GitHub, Linear, or Jira with a settings skill to change any of it, maps of d",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/pr-story-aligner",
+   "name": "PR Story Aligner: Pull Request vs Ticket Check",
+   "description": "Check a pull request against its Jira, Linear or GitHub issue before merge: each acceptance criterion marked done, partial or missing, plus out-of-scope changes.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ivorycanvas/qamap/plugins/claude",
+   "name": "QAMap",
+   "description": "Review a pull request from one local brief: the diff, the tests and callers of changed code, and change signals. No LLM call, no upload.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ripplo/claude-plugin/",
+   "name": "Ripplo",
+   "description": "Ripplo reviews pull requests by driving your app end to end in a real browser and reporting what broke, with the evidence. This plugin connects an app to Ripplo and lets Claude Code fix what a review found and add what a review could not cover.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/thelazydevsinc/lazytools/plugins/lazytools",
+   "name": "LazyTools",
+   "description": "LazyTools by The LazyDevs Inc.: small skills for Claude Code. help-me-decide turns open decisions into a multiple-choice page and the answers into an ADR. help-me-test turns a release into a tester checklist page and the results into a test report. help-me-review turns a pull request into a review c",
+   "category": ""
+  }
+ ],
+ "q03": [
+  {
+   "id": "marketplace:claude-plugins-official/prisma",
+   "name": "prisma",
+   "description": "Prisma MCP integration for Postgres database management, schema migrations, SQL queries, and connection string management. Provision Prisma Postgres databases, run migrations, and interact with your data directly.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/prisma/claude-plugin/",
+   "name": "Prisma",
+   "description": "Prisma MCP integration for Postgres database management, schema migrations, SQL queries, and connection string management. Provision Prisma Postgres databases, run migrations, and interact with your data directly.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/esot321c/opinionated-prisma/",
+   "name": "Opinionated Prisma Skills",
+   "description": "Opinionated Prisma ORM + PostgreSQL patterns: schema design, indexing, migrations, transactions, and raw SQL escape hatches",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/clidey/whodb/cli/external-plugin/whodb",
+   "name": "whodb",
+   "description": "WhoDB database management tools. Query databases, explore schemas, analyze data, and get optimization recommendations. Supports PostgreSQL, MySQL, SQLite, MongoDB, Redis, ClickHouse, Elasticsearch, and more.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/awslabs/agent-plugins/plugins/databases-on-aws",
+   "name": "databases-on-aws",
+   "description": "Expert database guidance for the AWS database portfolio. Design schemas, execute queries, handle migrations, and choose the right database for your workload.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/db-schema-spy",
+   "name": "DB Schema Spy: Database Schema Explorer and ERD",
+   "description": "See your real database schema before writing SQL: tables, columns, foreign keys and indexes from Prisma, Drizzle, Django, Rails or migrations, with Mermaid ER diagrams.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/a-abdellatif98/db-migration-guard/",
+   "name": "db-migration-guard",
+   "description": "Database migration safety plugin that detects dangerous schema changes, warns about locking risks, and suggests zero-downtime migration patterns across Rails, Django, Laravel, and Prisma",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/woobox/hatchable-mcp/",
+   "name": "hatchable",
+   "description": "Build, deploy, and run full-stack web apps from Claude Code. Every project gets a live URL, a dedicated PostgreSQL database, auth, cron, email, and storage. No build step, no infrastructure. After installing, run /mcp and sign in to Hatchable to connect (free).",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/barotdhrumil21/aifordatabase-mcp/",
+   "name": "AI for Database",
+   "description": "Answer questions from your production databases, write and run read-only SQL, build recurring metrics reports and set up data alerts, using your AI for Database workspace.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/cloud-sql-postgresql",
+   "name": "cloud-sql-postgresql",
+   "description": "Create, connect, and interact with a Cloud SQL for PostgreSQL database and data.",
+   "category": "database"
+  },
+  {
+   "id": "plugin-directory:https://github.com/cockroachdb/claude-plugin/",
+   "name": "cockroachdb",
+   "description": "Connect Claude Code directly to your CockroachDB clusters for hands-on database work \u2014 explore schemas, write optimized SQL, debug queries, and manage distributed database clusters. This plugin provides tools across MCP backends (self-hosted MCP Toolbox and managed CockroachDB Cloud MCP Server), spe",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/gemini-cli-extensions/cloud-sql-postgresql/",
+   "name": "cloud-sql-postgresql",
+   "description": "Create, connect, and interact with a Cloud SQL for PostgreSQL database and data.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/unvus/neosql-mcp/plugins/neosql-mcp",
+   "name": "NeoSQL MCP",
+   "description": "Use the database connections you already configured in NeoSQL Desktop from Claude: inspect schemas, run SQL, edit ERD models, and generate code through a local MCP server.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/alloydb",
+   "name": "alloydb",
+   "description": "Create, connect, and interact with an AlloyDB for PostgreSQL database and data.",
+   "category": "database"
+  },
+  {
+   "id": "plugin-directory:https://github.com/gemini-cli-extensions/alloydb/",
+   "name": "alloydb",
+   "description": "Create, connect, and interact with an AlloyDB for PostgreSQL database and data.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/service-boundary-tests",
+   "name": "Service Boundary Tests: Containers, Contracts and Mocks",
+   "description": "Find every database, queue, cache and outside API your service uses, then write integration tests with real containers and contract tests with mocks for what you cannot run.",
+   "category": ""
+  }
+ ],
+ "q04": [
+  {
+   "id": "marketplace:claude-plugins-official/sonatype-guide",
+   "name": "sonatype-guide",
+   "description": "Sonatype Guide MCP server for software supply chain intelligence and dependency security. Analyze dependencies for vulnerabilities, get secure version recommendations, and check component quality metrics.",
+   "category": "security"
+  },
+  {
+   "id": "plugin-directory:https://github.com/sonatype/sonatype-guide-claude-plugin/",
+   "name": "sonatype-guide",
+   "description": "Sonatype Guide MCP server for software supply chain intelligence and dependency security analysis. Scan dependencies for vulnerabilities, get version recommendations, and check component quality metrics.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/claude-security",
+   "name": "claude-security",
+   "description": "Deep vulnerability scanning of your own code, run entirely inside your Claude Code session at a chosen effort tier, with every finding challenged before it is reported and the verification tally computed in code. Turns surviving findings into targeted patches, each verified by a panel of agents, tha",
+   "category": "security"
+  },
+  {
+   "id": "plugin-directory:https://github.com/iamdxcom/dx-guard/",
+   "name": "dx-guard",
+   "description": "Dependency security guard for AI coding agents. Scans npm/pip/pnpm/yarn packages for known vulnerabilities before installation using OSV.dev \u2014 zero config, zero API keys.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/claude-security",
+   "name": "claude-security",
+   "description": "Deep vulnerability scanning of your own code, run entirely inside your Claude Code session at a chosen effort tier, with every finding challenged before it is reported and the verification tally computed in code. Turns surviving findings into targeted patches, each verified by a panel of agents, tha",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ateamsoftsolutio/ateam-security-audit/",
+   "name": "Security Audit Loop by ATeam",
+   "description": "Audit, fix, verify, repeat. A security audit loop for software projects: open-source scanners for secrets, code, dependencies, infrastructure and CI, plus its own review of access control, business logic and AI features. Findings go into a tracked register, developers fix them, rescans confirm every",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/bugsee/bugsee-for-ai/",
+   "name": "Bugsee",
+   "description": "Bugsee plugin for Claude Code: set up Bugsee SDKs, debug crashes and bug reports, inspect builds for size and dependency vulnerabilities, and upload symbols \u2014 via the Bugsee MCP server and skills.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/optimal-ai/optibot-skill/",
+   "name": "Optibot",
+   "description": "AI code review that catches production-breaking bugs, business logic issues, and security vulnerabilities \u2014 directly in Claude Code.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/security-guidance",
+   "name": "security-guidance",
+   "description": "Security review for Claude-generated code. Pattern-based warnings on edits, LLM-powered diff review on Stop, and an agentic commit reviewer that catches injection, XSS, SSRF, hardcoded secrets, and 25+ other vulnerability classes.",
+   "category": "security"
+  },
+  {
+   "id": "marketplace:claude-plugins-official/semgrep",
+   "name": "semgrep",
+   "description": "Semgrep catches security vulnerabilities in real-time and guides Claude to write secure code from the start.",
+   "category": "security"
+  },
+  {
+   "id": "marketplace:claude-plugins-official/42crunch-api-security-testing",
+   "name": "42crunch-api-security-testing",
+   "description": "Automate API security directly in Claude Code with 42Crunch - automatically audit OpenAPI specs, detect vulnerabilities aligned with OWASP API Security risks (including BOLA/BFLA), and apply AI-powered fixes. Designed for AI-assisted development workflows, it provides continuous guardrails through a",
+   "category": "security"
+  },
+  {
+   "id": "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/security-guidance",
+   "name": "Security Guidance",
+   "description": "Security review for Claude-generated code. Pattern-based warnings on edits, LLM-powered diff review on Stop, and an agentic commit reviewer that catches injection, XSS, SSRF, hardcoded secrets, and 25+ other vulnerability classes.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/semgrep/mcp-marketplace/plugin",
+   "name": "Semgrep Guardian",
+   "description": "Semgrep Guardian: Scans agent-generated code for security vulnerabilities.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/aws/agent-toolkit-for-aws/plugins/aws-agents-for-devsecops",
+   "name": "aws-agents-for-devsecops",
+   "description": "Investigate incidents, review code and execute UAT for release readiness, scan code for vulnerabilities, and run penetration tests with AWS DevOps Agent and AWS Security Agent.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/lian-yue/finecomb/",
+   "name": "finecomb: exhaustive code review and security audit",
+   "description": "Exhaustive code review and security audit checklist for any language. Root-cause facets distilled from real vulnerabilities, asked of every object; 46 general dimensions; 78 specialties by target type; 33 language and format tables, including configuration, regex and GPU programs; host, runtime and ",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/nikolasdehor/shieldcode/",
+   "name": "Shieldcode",
+   "description": "Security hardening and error handling expertise for Claude Code. Prevents OWASP Top 10 vulnerabilities, enforces secure defaults, and ensures production-grade error handling in every line of code.",
+   "category": ""
+  }
+ ],
+ "q05": [
+  {
+   "id": "plugin-directory:https://github.com/atomic-man007/pptx-deck-plugin/",
+   "name": "pptx-deck-plugin",
+   "description": "Create polished PowerPoint (.pptx) presentations from plain text. Brand-agnostic \u2014 auto-detects colors from .potx templates or picks a palette. Includes 7 slide patterns: title, flow diagram, cards, metrics, timeline, summary.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/glukicov/slideops/",
+   "name": "SlideOps",
+   "description": "Turn a repository into a slide deck or Markdown docs, then find out the day they stop matching the code. Ships slideops (repo to deck or cited Markdown doc, with citation-based freshness checking) and slides-to-pdf (any hash-navigated HTML deck to a verified PDF).",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/shawnzam/keynot/",
+   "name": "keynot",
+   "description": "Build polished, self-contained HTML slide decks from any prompt \u2014 keyboard nav, swipe, fullscreen, brand theming. No Keynote or PowerPoint required.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/presenton/presenton-claude-plugin/",
+   "name": "Presenton",
+   "description": "Create editable PowerPoint presentations, PDFs, and PNG slide images through Presenton's remote MCP connector.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/superdesigndev/superdesign-skill/",
+   "name": "Superdesign",
+   "description": "Design or redesign frontend UI, presentations, and marketing graphics on the Superdesign infinite canvas. Uses approved slide outlines, project context, and branchable drafts you refine.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/aitho-app/aitho-claude-plugin/",
+   "name": "Aitho",
+   "description": "Rehearse and deliver presentations with your own slides: Claude turns your deck into a talk with a speaker script that follows your voice, helps you practise the questions you'll be asked, and drives your slides while you present.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/vipinsanthosh/ploxs-presentations-plugin/",
+   "name": "Ploxs Presentations",
+   "description": "Create and edit designed Google Slides decks with Ploxs, including agent-authored HTML frames.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/famous-labs/supercool-skills/plugins/supercool-sites-decks",
+   "name": "SuperCool Sites & Decks",
+   "description": "Your SuperCool agent builds and publishes websites and landing pages, designs presentations, writes research reports and documents, and makes design assets like logos, diagrams and UI mockups.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/meeting-ai/memo-claude-plugin/",
+   "name": "Meeting.ai",
+   "description": "Meeting.ai is the AI that works before, during, and after your meeting. It prepares decks and research before, records and writes the notes during, and turns what was actually said into minutes, documents, spreadsheets, follow-up decks, audio briefs, and Visual Notes after.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/slidely-ai/slidely-claude-plugin/",
+   "name": "Slidely",
+   "description": "Create and edit slides in Claude.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/yn01/claude-plugins/plugins/slide-revive",
+   "name": "slide-revive",
+   "description": "Rebuild NotebookLM slide PDFs as editable PPTX using Vision AI and genpptx",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/getdeck-io/plugins/",
+   "name": "Deck",
+   "description": "Deck in your coding agent \u2014 the AI PM that Autonomously Improves your Product.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/fluidform-ai/fluiddocs-deck-builder/",
+   "name": "FluidDocs Deck Builder",
+   "description": "Open-source deck builder. Drop in a PDF or PPTX, get back a polished interactive HTML deck. 5 type-correct deck types (pitch, sales, launch, keynote, all-hands), 8 templates, PDF and PPTX import, inline editing, multi-reviewer quality pipeline.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/postraid/plugin/",
+   "name": "Postraid",
+   "description": "Browse your Postraid brands and saved social content, then save supplied slide copy as editable carousel drafts. Review in Postraid before publishing; no generation, scheduling or credit spending.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/clipwave-io/clipwave-plugins/ai-avatar-presenter",
+   "name": "AI Avatar Presenter & Explainer Video Maker",
+   "description": "AI avatar presenter video maker: turn a topic into an explainer, lesson or self-introduction spoken to camera by an AI presenter with an AI voice, scripted scene by scene and delivered as an MP4 from your ManyMotions account.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/jdsoliveiraa/stream-deck-skill-cc/",
+   "name": "stream-deck",
+   "description": "Build Stream Deck plugins with the Elgato SDK v2. Scaffold projects, add actions, create property inspectors, build, pack, and validate \u2014 all guided by the official SDK documentation.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/amaklakov-droid/pitch-deck-skill/",
+   "name": "Pitch Deck Advisor",
+   "description": "Build, review, and improve investor pitch decks for startups, with deep specialization in high-tech / deep-tech projects. Based on Y Combinator, Sequoia Capital, a16z guidance and DocSend research.",
+   "category": ""
+  }
+ ],
+ "q06": [
+  {
+   "id": "plugin-directory:https://github.com/mohitkale/docker-kubernetes/",
+   "name": "Docker and Kubernetes DevKit",
+   "description": "Generate Dockerfiles and Kubernetes manifests, debug failing containers and pods, and audit Helm charts and RBAC. Opinionated, safety-conscious workflows for Docker and Kubernetes from local builds through production clusters.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ayobamiseun/drydock/",
+   "name": "Drydock",
+   "description": "Diagnose and fix Kubernetes and Docker problems: pod crash triage playbooks, Dockerfile optimization, Helm chart review, and Compose file review",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/nitinjain999/platform-skills/",
+   "name": "platform-skills",
+   "description": "Practical guidance for platform engineers across Claude, Codex, Cursor, and Copilot: Kubernetes (baseline, RBAC, workload hardening, debug), GitHub Actions (design, security, review, debug), Azure (Workload Identity, tagging, AKS, RBAC), OpenShift (SCC, Routes, GitOps, upgrades), Secrets (ESO, Seale",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/cyberinecore/cc-release-guard/",
+   "name": "Cyberine ReleaseGuard",
+   "description": "Stops accidental source and secret leaks when you publish or deploy: a zero-dependency gate for npm tarballs, wheels, crates, VS Code, Electron, NuGet, gem, Helm and container artifacts, plus a PreToolUse hook that asks before an unchecked publish, upload or deploy, and skills for the safe build-pac",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/vibee-one/claude-plugin/",
+   "name": "Vibee",
+   "description": "Build small internal apps (tables, forms, charts, web pages and HTTP endpoints) through conversation.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/humanleap/toolrouter-mcp/",
+   "name": "toolrouter",
+   "description": "The OpenRouter for tools. One MCP connection gives Claude Code a hosted catalog of specialist tools: web search, scraping and screenshots, research, SEO, finance, property, compliance, transcription, charts and diagrams. Free tools work immediately; paid tools are pay per call from $0.005.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/vercel/vercel-plugin/",
+   "name": "vercel",
+   "description": "Build and deploy web apps and agents",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ziniman/ai-instruct/",
+   "name": "ai-instruct",
+   "description": "Drop-in skills for Claude Code covering the domains developers Google when shipping a website: AWS deployment, Google Analytics 4, SEO/LLMO, web accessibility, and Core Web Vitals.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/cm64-studio/cm64-cli/",
+   "name": "cm64",
+   "description": "CM64 Studio \u2014 Build and deploy web apps in 60 seconds with AI. Full PaaS with CLI + MCP tools.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/henry-bauta/share-artifacts/",
+   "name": "Share Artifacts",
+   "description": "Publish and share artifacts as hosted web pages. Deploy HTML, React apps, dashboards, and visualizations to shareable URLs with Bauta.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/woobox/hatchable-mcp/",
+   "name": "hatchable",
+   "description": "Build, deploy, and run full-stack web apps from Claude Code. Every project gets a live URL, a dedicated PostgreSQL database, auth, cron, email, and storage. No build step, no infrastructure. After installing, run /mcp and sign in to Hatchable to connect (free).",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/regardv/kubernetes-mastery/",
+   "name": "Kubernetes Mastery",
+   "description": "Reason about, author, and safely operate Kubernetes. Three skills: concepts (the founder/company mental model), authoring (failure-mode-first manifest design and review), and operating (read-only-by-default live-cluster triage). Grounded in official Kubernetes docs, the NSA/CISA Hardening Guide, OWA",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/seenode/seenode-agent-plugin/",
+   "name": "Seenode",
+   "description": "Deploy, troubleshoot, and manage static sites, web/worker/private applications, databases, storage, domains, projects, and billing on Seenode via the hosted Seenode MCP.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/aws-cost-guard",
+   "name": "AWS Cost Guard: Cloud Cost and Kubernetes Debugging",
+   "description": "Find out why your AWS bill grew: costs by service, idle EC2, EBS and Elastic IPs, plus failing Kubernetes pods explained from logs. Read-only, uses your aws and kubectl CLI.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/crowdsec",
+   "name": "crowdsec",
+   "description": "Operational skill for installing, configuring, operating, and debugging CrowdSec (cscli, LAPI/CAPI, hub, bouncers, WAF/AppSec) across bare-metal, Docker, and Kubernetes.",
+   "category": "security"
+  },
+  {
+   "id": "plugin-directory:https://github.com/gomboc-ai/gomboc-community-skills/",
+   "name": "Gomboc AI Community",
+   "description": "Scan, fix, and create ORL rules for Terraform, HCL, CloudFormation, Bicep, Dockerfile, Kubernetes, and Python",
+   "category": ""
+  }
+ ],
+ "q07": [
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/test-coverage-intelligence",
+   "name": "Test Coverage Intelligence: Risk-Ranked Coverage Gaps",
+   "description": "Turn lcov, Cobertura, Istanbul, JaCoCo or Go coverage reports into a list of the riskiest untested code, ranked by git churn, then write the missing tests.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/martinhar/qa-bug-hunter/",
+   "name": "QA Bug Hunter",
+   "description": "Finds, reproduces, and confirms bugs in frontend or backend code and reports them with evidence \u2014 read-only on your codebase (it never fixes). Confirms via the project's own unit tests; an optional Playwright MCP, enabled on demand, handles UI verification.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/hrsandrabi/diataxis/",
+   "name": "diataxis",
+   "description": "Survey a codebase, gap-analyse documentation using the Diataxis framework, plan improvements, and write docs one at a time",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/suresofttechnologies/dvera-plugin/",
+   "name": "dvera",
+   "description": "Connect AI coding-agent context to CT (Controller Tester) C/C++ verification workflows: project preparation, analysis, test generation, execution, coverage, reporting, and regression follow-up.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/cedricfarinazzo/agile-skills/deep-refactor",
+   "name": "Deep Refactor",
+   "description": "Audit-and-ship workflows for Claude Code: deep-refactor (codebase-wide audit, evidence-backed report, sequenced ticket train, PR drain preserving the test contract), test-refactor (per-suite test audit with production code frozen \u2014 dead-test deletion with evidence, parametrized merges, single-parall",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/devravik/engineering-intelligence/",
+   "name": "Engineering Intelligence",
+   "description": "Review and improve AI-generated software for architecture, security, APIs, databases, testing, complexity, UI quality, and AI slop.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ntchz/off-by-none/",
+   "name": "off-by-none",
+   "description": "Spec-faithful implementation: spec-derived tests, mandatory boundary coverage, and an evidence-gated done-report. Every rule TDD-tested against baseline failures on Opus, Sonnet, and Haiku.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/gg-mo/repo-hygiene/",
+   "name": "Repo Hygiene",
+   "description": "Skills that keep a codebase healthy as agents work in it: repo orientation, docstring discipline, doc freshness, test coverage for new code, and pre-commit verification gates",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/malek0x1/sabotage/",
+   "name": "sabotage",
+   "description": "Mutation testing for AI-written code. Coverage tells you a line ran \u2014 not that anything would notice if it were wrong. Sabotage breaks your code on purpose (makes isAdmin() return true, zeroes out a discount, flips a boundary), runs your existing suite, and reports every test that still passed. Thos",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/grodowski/undercover-claude/",
+   "name": "undercover",
+   "description": "Test coverage feedback loop using undercover gem",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/angrysushi11/claude-plugins/plugins/app-growth-calculator",
+   "name": "App Growth Calculator",
+   "description": "Test whether a subscription app's paid growth pays back, what input must improve, and whether cash can cover the wait.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/khadinakbarlabs/chrome-extension-builder-plugin/",
+   "name": "Chrome Extension Builder",
+   "description": "Plan, build, test, and improve Chrome Manifest V3 extensions with specialist skills, scoped project context, evidence reports, and an optional local Studio.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/env-setup-wizard",
+   "name": "Env Setup Wizard: Project Setup and Onboarding",
+   "description": "Work out what a project needs to run (Node, Python, Go, Docker, services, env vars), compare it with your machine and write a verified one-command setup script.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/maciejdzierzek/kling-ai-prompt-generator/",
+   "name": "kling-ai-prompt-generator",
+   "description": "Write and improve prompts for Kling AI video generation and pick the right Kling model. Covers VIDEO 3.0, VIDEO 3.0 Turbo, VIDEO 3.0 Omni (including video editing), Motion Control, Avatar 2.0 talking avatars, multi-shot storyboards, Element Reference, Voice Control, native audio, first/last frame co",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/praneybehl/llm-wiki-plugin/",
+   "name": "llm-wiki-plugin",
+   "description": "Build a shared Markdown knowledge base with local hybrid search and an optional evidence-linked workflow to capture task lessons, evaluate skill improvements, and apply or roll back tested changes.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/verygoodopensource/very_good_ai_flutter_plugin/",
+   "name": "Very Good AI Flutter Plugin",
+   "description": "Best-practice skills for Flutter and Dart covering accessibility, animations, BLoC, testing, theming, navigation, security, internationalization, layered architecture, license compliance, UI packages, project creation, SDK/lint upgrades, and an autonomous quality-gate loop that drives analyze, forma",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/zuwasi/wazatator-plugin/",
+   "name": "Wazatator",
+   "description": "Test and improve Agent Skills with real Claude Code sessions: scaffold eval suites, measure what a skill adds, catch trigger collisions, and keep only fixes that pass a regression gate",
+   "category": ""
+  }
+ ],
+ "q08": [
+  {
+   "id": "plugin-directory:https://github.com/illarion/claude-jira-skill/",
+   "name": "claude-jira-skill",
+   "description": "Claude Code skill for Jira \u2014 fetch tickets, search with JQL, manage issues, and generate team digest reports.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/atlassian/atlassian-mcp-server/",
+   "name": "Atlassian MCP",
+   "description": "Connect to Atlassian products including Jira and Confluence. Search and create issues, access documentation, manage sprints, and integrate your development workflow with Atlassian's collaboration tools.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/cedricfarinazzo/agile-skills/agile-sprint-drain",
+   "name": "Agile Sprint Drain",
+   "description": "Sprint-drain orchestrator for Claude Code \u2014 runs the active sprint to a fixed point by auto-alternating agile-10-implement (build queue) and agile-11-merge-train (merge queue) until the Jira dependency graph is fully resolved. An actionable-work guard keeps retrying while any item can advance and st",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/vslipchenko/ai/plugins/estimator",
+   "name": "estimator",
+   "description": "Estimate Jira tickets from your team's actual history. Pulls resolved tickets via the Atlassian MCP to build a baseline, then suggests effort/story-point estimates by comparing new work to similar past tickets.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/frankieramirez/mana/",
+   "name": "mana",
+   "description": "Agent skills, cast as spells: multi-reviewer code review, PR feedback resolution without comment noise, sustained PR monitoring and repair, replies that read like you typed them, comment removal, one question repo setup for GitHub, Linear, or Jira with a settings skill to change any of it, maps of d",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/hellotern/sextant/",
+   "name": "Sextant",
+   "description": "Architecture-aware engineering principles framework for Claude Code. Provides systematic, tiered workflows for bug fixes, new features, refactoring, code review, test writing, requirements refinement, debugging, shipping, sprint planning, migrations, and security audits.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/pr-story-aligner",
+   "name": "PR Story Aligner: Pull Request vs Ticket Check",
+   "description": "Check a pull request against its Jira, Linear or GitHub issue before merge: each acceptance criterion marked done, partial or missing, plus out-of-scope changes.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/mohitgoel188/standup-logger/",
+   "name": "standup-logger",
+   "description": "Automatic daily standup logger for Claude Code. Logs session work with Jira ticket IDs to per-date files and generates ready-to-speak standup summaries.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/atlassian-labs/twg-plugins/",
+   "name": "Atlassian Teamwork Graph CLI",
+   "description": "Teamwork Graph CLI is Atlassian's agent-first interface to your entire work context: Jira issues, Confluence pages, Bitbucket PRs, along with your connected third-party data sources. Purpose-built for coding agents like Claude Code (terminal or desktop), and powered by Atlassian's context graph. Try",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/atlassian-twg-cli",
+   "name": "atlassian-twg-cli",
+   "description": "Teamwork Graph CLI is Atlassian's agent-first interface to your entire work context: Jira issues, Confluence pages, Bitbucket PRs, along with your connected third-party data sources. Purpose-built for coding agents like Claude Code (terminal or desktop), and powered by Atlassian's context graph. Try",
+   "category": "productivity"
+  },
+  {
+   "id": "plugin-directory:https://github.com/mhihasan/coding-agent-skills/",
+   "name": "coding-agent-skills",
+   "description": "Skills for coding agents: software craft (clean architecture, DDD, design patterns, pragmatic engineering) and an agentic dev workflow (ticket fetching, planning, task generation, TDD implementation, and code review).",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/noveum/orbit-mcp/",
+   "name": "Orbit by Noveum",
+   "description": "Manage Orbit issues, projects, sprints, docs and files through the hosted OAuth MCP server.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/grammaropolis/grammaropolis-teachers/",
+   "name": "Grammaropolis for Teachers",
+   "description": "Six grammar and writing tools for Grades 1-8 teachers, taught by the Grammaropolis characters: a pacing guide, a lesson planner, daily sentence warm-ups, exit tickets, a prewriting toolkit, and writing rubrics, with the Grammaropolis catalog connector.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/bukoo93/project-pilot/",
+   "name": "project-pilot",
+   "description": "Comprehensive project management and codebase intelligence plugin for PMs and developers. Provides project analysis, git history explanation, technical debt reports, release notes generation, ADR creation, sprint health monitoring, impact analysis, dependency mapping, breaking change detection, bus ",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/aimsise/simple-workflow/",
+   "name": "simple-workflow",
+   "description": "The Claude Code plugin for an end-to-end AI development workflow \u2014 ticket management, multi-agent code review, security audit, and automated PR creation \u2014 built on a Harness for long-running AI agents with strict context management and cross-session learning.",
+   "category": ""
+  }
+ ],
+ "q09": [
+  {
+   "id": "plugin-directory:https://github.com/kcy4334-lgtm/translate-book-arxiv/",
+   "name": "Translate Book: arXiv",
+   "description": "Translate an arXiv paper, or any PDF/DOCX/EPUB book, into any language as a printable book. For arXiv papers it reads the LaTeX source, so equations, tables, figures and numbering survive. Parallel sub-agents translate the chunks; output is HTML, DOCX, EPUB and PDF.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/aiocean/claude-plugins/plugins/aio-epub-translate",
+   "name": "translate epub",
+   "description": "Translate EPUB books into literary Vietnamese end-to-end \u2014 upload, pre-translation analysis, chapter translation with consistency checks, quality review, and bilingual export.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ezra-y/academic-pdf-translation/",
+   "name": "Academic PDF Translation",
+   "description": "Translate academic PDFs into readable, searchable PDFs while preserving document structure and research meaning.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/deepl/claude-plugin/",
+   "name": "DeepL",
+   "description": "Translate, rephrase, and correct text with DeepL",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/midvash/bible-mcp/",
+   "name": "Bible by Midvash",
+   "description": "Read and compare Scripture across 86 translations in 32 languages. No API key required.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/code-review",
+   "name": "code-review",
+   "description": "Automated code review for pull requests using multiple specialized agents with confidence-based scoring",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/lorenzino69/easypdf-claude-plugin/",
+   "name": "EasyPDF",
+   "description": "Work on real PDF files from Claude: edit text in place with the original fonts, compress under a portal's size limit, build application packets, translate with the layout kept, convert to Word, Excel or PowerPoint. In Claude Code, local files are processed end to end and the result lands next to the",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/figma/mcp-server-guide/",
+   "name": "Figma",
+   "description": "Figma design platform integration. Access design files, extract component information, read design tokens, and translate designs into code. Bridge the gap between design and development workflows.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/oracle-samples/oracle-aidp-samples/ai/claude-code-plugins/oracle-ai-data-platform-workbench-aws-migrator",
+   "name": "oracle-ai-data-platform-workbench-aws-migrator",
+   "description": "Migrate an AWS data stack (S3, Glue, Athena, EMR, SageMaker) to Oracle AI Data Platform: inventory, plan, translate (deterministic-first), and verify.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/code-review",
+   "name": "code-review",
+   "description": "Automated code review for pull requests using multiple specialized agents with confidence-based scoring to filter false positives",
+   "category": "productivity"
+  },
+  {
+   "id": "plugin-directory:https://github.com/mlgraham/coderocket-plugin/",
+   "name": "coderocket",
+   "description": "Generate production-ready CI/CD workflows from any codebase. CodeRocket analyzes your repo, builds a GitHub Actions pipeline, and opens a PR \u2014 zero to deployed in 60 seconds. Supports 8 languages, 15+ frameworks, and every major cloud platform.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/mark-kimura/consensus-plugin/",
+   "name": "consensus",
+   "description": "Get unstuck by querying multiple AI providers (GPT-5.5, Gemini, DeepSeek) for diverse perspectives",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/hmakt99/dev_wrapped/",
+   "name": "Dev Wrapped",
+   "description": "Spotify-Wrapped-style year-in-review for any git repo or GitHub account \u2014 commits, streaks, top languages, busiest hour, and a developer persona, as a self-contained HTML story plus shareable cards.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/sonarsource/sonarqube-agent-plugins/",
+   "name": "SonarQube",
+   "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the agent coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates acr",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/kunsanglee/sync-my-skills/",
+   "name": "sync-my-skills",
+   "description": "Sync Claude Code skills across multiple machines using GitHub. Push, pull, and manage your personal skills with a private GitHub repo.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/adobe/skills/plugins/creative-cloud/adobe-for-creativity",
+   "name": "Adobe",
+   "description": "Brings together Adobe Creative Cloud tools for images, vectors, design, and video. Edit multiple assets at once, adapt for different platforms, and complete multi-step creative workflows for polished results.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/marcelopaniza/buses/",
+   "name": "Buses",
+   "description": "Lightweight cross-terminal messaging for Claude Code. Multiple sessions on one or many machines share a folder; messages are picked up by a hook on the next user prompt \u2014 zero idle polling, zero token cost when no traffic.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/conveythis/claude-translator/",
+   "name": "conveythis-translator",
+   "description": "Localize a built static site into dozens of languages as real static pages, by substituting into the built HTML instead of re-rendering \u2014 so Core Web Vitals hold. Works with Astro, Next export, Hugo, Eleventy, Jekyll or plain HTML, via Claude, Gemini, any OpenAI-compatible endpoint, or a fully local",
+   "category": ""
+  }
+ ],
+ "q10": [
+  {
+   "id": "plugin-directory:https://github.com/latitude-dev/latitude-claude/",
+   "name": "Latitude",
+   "description": "Open-source AI agent monitoring platform. Full observability into what's failing in production. Discover underlying issues, get alerts when something breaks and verify your fix worked.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/elmahio/elmah-io-ai-plugin/",
+   "name": "elmah.io",
+   "description": "Error monitoring and log management for your production apps. Query logs, investigate errors, track deployments, and check uptime \u2014 directly from Claude Code via the elmah.io MCP server.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/sentry-cli",
+   "name": "sentry-cli",
+   "description": "Skills for using the Sentry CLI to interact with Sentry from the command line",
+   "category": "monitoring"
+  },
+  {
+   "id": "plugin-directory:https://github.com/vinktarhq/agent/",
+   "name": "Vinktar",
+   "description": "Error tracking for your app that Claude can read. Already on Sentry? Keep the SDK and change the DSN. Starting fresh? Ask Claude: \"Set up Vinktar for my app.\" It adds the SDK and checks that errors arrive, no account needed first; you claim the project with one link when it is done. Then ask what br",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/barotdhrumil21/aifordatabase-mcp/",
+   "name": "AI for Database",
+   "description": "Answer questions from your production databases, write and run read-only SQL, build recurring metrics reports and set up data alerts, using your AI for Database workspace.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/steadwing/agent-skills/",
+   "name": "Steadwing",
+   "description": "AI Root Cause Analysis for production incidents. Self-registers a Steadwing agent, triggers RCA on error logs and stack traces, and passively detects production-style errors to offer analysis.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/grafana/ai-marketplace/plugins/grafana-mcp",
+   "name": "Grafana MCP",
+   "description": "MCP server for AI-assisted Grafana dashboard, datasource, alerting, and incident management.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/nikolasdehor/shieldcode/",
+   "name": "Shieldcode",
+   "description": "Security hardening and error handling expertise for Claude Code. Prevents OWASP Top 10 vulnerabilities, enforces secure defaults, and ensures production-grade error handling in every line of code.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/signoz/agent-skills/plugins/signoz",
+   "name": "SigNoz",
+   "description": "Official SigNoz plugin for MCP setup, docs, queries, dashboards, and alerts",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/healthcheckemail/plugin/",
+   "name": "Healthcheckemail",
+   "description": "Inspect monitored domains, email-health history, authentication diagnostics and DMARC enforcement readiness. Manage monitoring, public status pages, alerts and team access with your account permissions. Some actions send notifications, expose public status or change access. MCP access requires an el",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/pendo-guides",
+   "name": "pendo-guides",
+   "description": "Create production-ready Pendo in-app guides (walkthroughs, announcements, alerts, polls, promotions) as HTML/CSS/JS from a short intake conversation, using Pendo's guide components.",
+   "category": "productivity"
+  },
+  {
+   "id": "plugin-directory:https://github.com/redreplier/claude-plugin/",
+   "name": "RedReplier",
+   "description": "Monitor Reddit, Hacker News, X, Bluesky, and Facebook for keyword mentions of your product, triage AI-scored leads, and manage alerts from your AI agent.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/getsentry/cli/packages/cli/plugins/sentry-cli",
+   "name": "sentry-cli",
+   "description": "Skills for using the Sentry CLI to interact with Sentry from the command line",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/norihiro-kajita/demand-insight/",
+   "name": "demand-insight",
+   "description": "Use-case-driven demand forecasting & data analysis for Claude Code. Runs an 8-step iterative loop (hearing \u2192 EDA \u2192 classification \u2192 features \u2192 modeling \u2192 error analysis \u2192 report) with data-leakage prevention, baseline-first adoption, Walk-Forward validation, asymmetric business cost, and Excel repor",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/newrelic",
+   "name": "newrelic",
+   "description": "New Relic observability intelligence for Claude Code. Investigate APM performance, analyze cloud costs, debug Kubernetes, write NRQL queries, and respond to alerts \u2014 all from your terminal using New Relic telemetry data.",
+   "category": "monitoring"
+  },
+  {
+   "id": "plugin-directory:https://github.com/getsentry/plugin-claude/",
+   "name": "sentry",
+   "description": "Sentry Plugin for Claude Code to help with debugging including MCP and skill capabilities.",
+   "category": ""
+  }
+ ],
+ "q11": [
+  {
+   "id": "plugin-directory:https://github.com/anthropics/claude-plugins-official/plugins/frontend-design",
+   "name": "frontend-design",
+   "description": "Frontend design skill for UI/UX implementation",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/petrovicistefan/claude-code-plugins/figma-to-code",
+   "name": "Figma to Code: Design to React, Vue and HTML",
+   "description": "Turn Figma frames into React, Vue or HTML components that reuse your design tokens and existing components, responsive and accessible. Uses Figma's official MCP server.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/playbooktv/rayden-ui-design-skill/",
+   "name": "Rayden UI Design Skill",
+   "description": "Generate React code and build Figma designs with the Rayden UI component library. Includes full component API reference, design tokens, craft rules, anti-patterns, and layout patterns for the Rayna UI design system.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/superdesign",
+   "name": "superdesign",
+   "description": "Design or redesign frontend UI and marketing graphics on the Superdesign infinite canvas. Reads your codebase for context, sets up a design system, and generates branchable design drafts you refine.",
+   "category": "design"
+  },
+  {
+   "id": "plugin-directory:https://github.com/superdesigndev/superdesign-skill/",
+   "name": "Superdesign",
+   "description": "Design or redesign frontend UI, presentations, and marketing graphics on the Superdesign infinite canvas. Uses approved slide outlines, project context, and branchable drafts you refine.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/ui-theme-designer",
+   "name": "ui-theme-designer",
+   "description": "Plugin for coding agents working with UI theme designer. Bundles two skills: how-to and conceptual answers about UI theme designer on BTP, and questions about the SAP Design System and SAP Fiori design tokens \u2014 theme parameters and component-level parameter usage in UI5, UI5 Web Components, and Fund",
+   "category": "design"
+  },
+  {
+   "id": "plugin-directory:https://github.com/iboss21/animatedwebs-claude/plugins/animatedwebs",
+   "name": "AnimatedWebs",
+   "description": "Build cinematic, animated websites from Claude Code: 1,400+ AnimatedWebs templates with live demos, cinematic video backgrounds, animated UI components, design systems and Design Studio, through a 15-tool MCP server.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/magicpathai/agent-skills/",
+   "name": "MagicPath",
+   "description": "Search, preview, install, and author MagicPath UI components (designs) from Claude Code via the magicpath-ai CLI. Create new MagicPath projects, edit canvas components directly from local code, apply design-system themes, and work across personal and team workspaces.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/facade-ui/skill/",
+   "name": "Facade Ui",
+   "description": "Build accessible marketing pages from Facade UI sections and templates, installed with the shadcn CLI. Heroes, feature grids, pricing tables, FAQs, contact forms, footers, complete landing pages, changelogs and docs pages.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/dequelabs/axe-accessibility/",
+   "name": "Axe Accessibility",
+   "description": "Deque's accessibility toolkit for coding agents. Get accessible UI effortlessly - your agent builds, tests, and remediates accessibility in the loop, so it's never a separate, manual chore. Currently powers the Axe MCP Server scan -> remediate -> verify workflow, including keyboard guided tests; exp",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/vectorlabau/skills/",
+   "name": "VectorLab UI/UX Skills",
+   "description": "VectorLab UI/UX, microcopy, and visual taste skills: low-friction, high-taste interfaces for any frontend stack.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/sh5623/fe-rail/",
+   "name": "fe-rail",
+   "description": "Harness dedicated to frontend projects. Supports Next.js App Router / Vite SPA + TypeScript, Tailwind v3/v4, shadcn/ui. Automates the spec\u2192build\u2192review\u2192PR cycle.",
+   "category": ""
+  },
+  {
+   "id": "marketplace:claude-plugins-official/frontend-design",
+   "name": "frontend-design",
+   "description": "Create distinctive, production-grade frontend interfaces with high design quality. Generates creative, polished code that avoids generic AI aesthetics.",
+   "category": "development"
+  },
+  {
+   "id": "plugin-directory:https://github.com/igniteui/igniteui-claude-plugin/",
+   "name": "Ignite UI MCP Tools",
+   "description": "Local Ignite UI MCP tools for Claude Code, including component docs and theming workflows.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/martinhar/qa-bug-hunter/",
+   "name": "QA Bug Hunter",
+   "description": "Finds, reproduces, and confirms bugs in frontend or backend code and reports them with evidence \u2014 read-only on your codebase (it never fixes). Confirms via the project's own unit tests; an optional Playwright MCP, enabled on demand, handles UI verification.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/thevrus/consistent-ui/",
+   "name": "consistent-ui",
+   "description": "Enforce UI consistency across an entire codebase \u2014 detects drift in spacing, typography, colors, components, iconography, and interaction patterns across web, native mobile, and server-rendered templates. Generates a P0-P3 report and remediation plan.",
+   "category": ""
+  }
+ ],
+ "q12": [
+  {
+   "id": "plugin-directory:https://github.com/theusanchez/stay-hydrated/",
+   "name": "stay-hydrated",
+   "description": "Hydration coach for Claude Code. Reminds you to drink water on a computed interval and locks all tools until you confirm you drank \u2014 with up to 2 postpones.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/callremind/callremind-claude-marketplace/plugins/callremind",
+   "name": "CallRemind",
+   "description": "Send non-interactive phone-call notifications and reminders through CallRemind.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/makeplane/plane-claude-plugin/",
+   "name": "Plane",
+   "description": "Plane project management integration. Create work items, triage intake, generate standups, and track cycle health directly from Claude Code.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/anthropics/claude-for-legal/legal-clinic",
+   "name": "legal-clinic",
+   "description": "Sets up the clinic, onboards students, runs structured intake, tracks deadlines with malpractice-aware caution, and hands off cases at semester end \u2014 built within ABA Formal Op. 512.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/knowledgepa3/gia-chief-of-staff/",
+   "name": "GIA Chief of Staff",
+   "description": "AI executive operations assistant \u2014 daily briefings, inbox triage, meeting prep, follow-up management, and pipeline tracking. Powered by GIA governance.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/felipe-venturini/mind-plus-plus/",
+   "name": "Mind++ for Claude",
+   "description": "Your second brain powered by Claude \u2014 captures meetings, tracks commitments, delivers daily briefs, and maintains a living knowledge base for your professional and personal life.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/ihorisfuture/rolepark-plugin/",
+   "name": "RolePark",
+   "description": "Recruiting workflows for the RolePark applicant tracking system: a daily briefing, application review with a shortlist and interview scheduling, interview prep, candidate search in your own database, adding a candidate from a CV, and pipeline updates for hiring managers. Claude works with your own R",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/berkkorkmaz/signal-hunter/",
+   "name": "signal-hunter",
+   "description": "AI-powered daily trend hunter. Aggregates 15+ sources (HN, GitHub, Reddit, YouTube, X/Twitter, newsletters, app stores), scores cross-source signals with newsletter mention tracking and velocity detection, generates Obsidian notes with business ideas and sends email digests.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/supermetrics-public/claude-marketing-plugin/plugins/supermetrics-marketing",
+   "name": "Supermetrics Ads & Marketing Analytics",
+   "description": "Marketing reporting, analytics and campaign management for Google Ads, Meta Ads, GA4, LinkedIn Ads, TikTok Ads, Microsoft Ads, Shopify, HubSpot and 150+ sources via Supermetrics. Find wasted spend, track ROAS and budget pacing, spot ad fatigue, launch and edit campaigns with your approval, and share",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/stuartshields/claude-co2-status-line/",
+   "name": "Claude CO2 Status Line",
+   "description": "Status line showing cumulative token usage, energy estimate, CO2 equivalent, and water usage for the current session",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/year-of-the/vaper/",
+   "name": "vaper",
+   "description": "Converts today's Claude Code token energy into one of four absurd units: water boiled, Big Macs, 9mm rounds, or 2010-era BTC mined.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/joaolucasmelo/vivara-claude-plugin/",
+   "name": "Vivara",
+   "description": "Log meals and water to Vivara and review your nutrition from a conversation, using your saved foods, Vivara's food database and your Vivara goals.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/robotaiorg/ai-plugin/",
+   "name": "i118 Phone Assistant",
+   "description": "View phone orders and order details for your i118 organizations.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/leosimini/keelokit/",
+   "name": "Keelokit",
+   "description": "A Claude Code harness for building apps in TypeScript monorepos: intake, PRD, a generated skeleton with CI, backlog, independent verification and rules backed by checks.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/yourbeckett/beckett-for-claude/",
+   "name": "beckett",
+   "description": "Notes that organize themselves, plus your tasks and reminders, calendar, grocery lists, recipes and meal plans, watchlists, birthdays, and habits. Claude can find and update any of it.",
+   "category": ""
+  },
+  {
+   "id": "plugin-directory:https://github.com/rurimpa/reply-reminder/",
+   "name": "Reply Reminder",
+   "description": "When another Claude Code session messages you, stop this session from finishing until it answers that sender or says in one line why no reply is needed. Stores sender names only.",
+   "category": ""
+  }
+ ]
+}

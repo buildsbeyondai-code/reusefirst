@@ -6,6 +6,12 @@ import sys
 from pathlib import Path
 
 PORT = int(os.environ.get("REQAN_PORT", "5057"))
+
+# Unsupported environments fail clearly and never block the session (Linux/WSL2 with Python 3.11+ only).
+if not sys.platform.startswith("linux") or sys.version_info < (3, 11):
+    print(f"ReuseFirst: needs Linux or WSL2 with Python 3.11+ (found {sys.platform}, Python {sys.version.split()[0]}); "
+          "the web UI was not started.", file=sys.stderr)
+    sys.exit(0)
 APP = Path(__file__).resolve().parent.parent / "app"
 
 with socket.socket() as s:

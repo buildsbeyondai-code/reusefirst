@@ -29,7 +29,7 @@ class ServerTests(unittest.TestCase):
 
     def req(self, method, path, body=None, headers=None, raw=None):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
-        h = {"Content-Type": "application/json"} | (headers or {})
+        h = {"Content-Type": "application/json", "X-ReqAn-Token": server.SESSION_TOKEN} | (headers or {})
         data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
         c.request(method, path, body=data, headers=h)
         r = c.getresponse()
@@ -81,7 +81,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(rec["result"]["requirement"], "History check: Stripe invoicing")
         self.assertNotIn("saved", rec["result"])
         # delete needs the session token
-        self.assertEqual(self.req("POST", f"/api/analyses/{saved['id']}/delete", {})[0], 403)
+        self.assertEqual(self.req("POST", f"/api/analyses/{saved['id']}/delete", {}, headers={"X-ReqAn-Token": "wrong"})[0], 403)
         tok = {"X-ReqAn-Token": server.SESSION_TOKEN}
         self.assertEqual(self.req("POST", f"/api/analyses/{saved['id']}/delete", {}, headers=tok)[0], 200)
         self.assertEqual(self.req("GET", f"/api/analyses/{saved['id']}")[0], 404)
@@ -94,6 +94,7 @@ class ServerTests(unittest.TestCase):
     def test_history_keeps_newest(self):
         import tempfile
         from pathlib import Path
+
         from reqanalyzer import history
         h = history.History(Path(tempfile.mkdtemp()))
         old = history.MAX_KEEP

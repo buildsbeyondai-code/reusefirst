@@ -1,57 +1,75 @@
-# ReuseFirst — Reuse-First Builder (Claude Code plugin + local web UI)
+# ReuseFirst — Reuse-First Builder (Claude Code plugin + local web UI) · 2.0
 
-Before building an app from a requirement, find what already exists: the closest **Claude Code plugins**
-(every plugin in your installed marketplaces and the Claude plugin directory cache, ~3,600) and **GitHub
-open-source repositories**, each with a **% closeness**, the concepts it does not cover, and a verdict
-(Reuse ≥70 · Fork/extend 50–69 · Borrow parts 30–49 · Build new <30).
+Before building an app from a requirement, ReuseFirst finds what already exists. It searches **Claude Code
+plugins** (your installed marketplaces and the plugin directory cache, ~3,800), **GitHub repositories**, and the
+**npm** and **crates.io** registries. It then answers the real question: **is reusing actually better than
+building?**
+
+Each candidate gets:
+- an uncalibrated relevance score;
+- concept coverage, plus the concepts it does not cover;
+- evidence confidence (higher when ReuseFirst read its README);
+- licence class and reuse right;
+- language compatibility and maintenance state;
+- a recommendation: reuse, extend, borrow, build new, or *insufficient evidence*.
+
+A decision panel compares reuse and build-new effort ranges, with assumptions and sensitivity.
 
 - Web UI: http://127.0.0.1:5057/ (SysPerf keeps 5056)
-- In Claude Code: `/reusefirst:reusefirst <requirement>` (or `status`), or just ask "does something like this already exist?". One skill covers analysis, builds, enhancements and build status.
+- In Claude Code: `/reusefirst:reusefirst <requirement>` (or `status`), or just ask "does something like this already exist?"
 - CLI: `PYTHONPATH=plugins/req-analyzer/app python3 -m reqanalyzer.cli --markdown "your requirement"`
 
-## Build tab (2 · Build app)
-1. **List required inputs**: every input needed to build the app, grouped by UAISES section (users, platforms, journeys,
-   MUST/SHOULD/OPTIONAL, Given/When/Then acceptance, integrations, non-functional targets, architecture, delivery) plus
-   app-specific questions, all pre-filled by Claude. The closest GitHub repos / Claude plugins are pre-ticked for reuse.
-2. **Create app**: Claude Code builds it headless with no questions (`--permission-mode dontAsk`, fixed tool allowlist,
-   spending cap, time limit) in `~/apps/<name>`: clones and reuses the ticked projects, follows UAISES (copied into the app's
-   `docs/`), writes and runs tests, and finishes with `docs/COMPLETION_REPORT.md`, `docs/REUSE.md` and `run.sh`.
-   Progress streams live; you can cancel; **Launch app** runs `run.sh`.
-   **Build into** an existing app instead (any folder in `~/apps` with a CLAUDE.md, README.md or run.sh): the inputs are
-   pre-filled from that app's own docs, a backup is taken first (`~/.local/state/req-analyzer/backups/`), the change is
-   described in `docs/ENHANCE_SPEC.md`, existing tests and any `tools/coverage.sh` gate must keep passing, and the build
-   ends with `docs/ENHANCE_REPORT.md`. Nothing is committed unless you tick it.
-3. **UI standard**: every app with a user interface is built to the Universal Enterprise UI Standard (UEUIS): ISO 9241-110 interaction
-   principles, WCAG 2.2 AA, every UI state, light and dark themes of equal quality, 320 px reflow. The level (Enterprise by
-   default) is an input; the standard is copied into the app's `docs/` and the build refuses to start without it. The app
-   must deliver `docs/UI_STATES.md`, `docs/ACCESSIBILITY.md` and the UEUIS §20 UI gate table in its completion report.
+## Build tab: sandboxed and independently verified
+1. **List required inputs.** Every input needed to build the app, grouped by UAISES section and pre-filled by Claude.
+   Reuse candidates are **pre-ticked only when they pass the reuse policy**: coverage ≥ 50%, permissive licence,
+   maintained, enough evidence, not a fork (docs/REUSE_POLICY.md).
+2. **Create app** (or **Enhance** an app in `~/apps`). The build runs in this order:
+   1. ReuseFirst clones the ticked projects itself, at a pinned commit, licence-checked, and writes
+      `docs/REUSE_PROVENANCE.md`.
+   2. Claude Code builds headless **inside a bubblewrap sandbox**. Your home is hidden, only the app folder is
+      writable, and the network reaches only the Claude API and package registries (docs/SECURITY_MODEL.md).
+   3. ReuseFirst **re-runs the tests and checks itself**: syntax, secrets, OSV vulnerabilities, SBOM, provenance,
+      a sandboxed start-up check, and regression for enhancements. The result goes in
+      `docs/VERIFICATION_REPORT.md`.
 
-The analyzer's own UI meets UEUIS Enterprise, its §8 visual design system and the §8.11 rich patterns (status strip,
-stepper, bullet graphs, band distribution, skeletons, toasts; see docs/DESIGN_SYSTEM.md) (brand app bar, KPI tiles, colour-coded
-verdicts and status chips, icons): theme picker (follows the system, remembers Light/Dark), skip link, full
-keyboard use, error summary, and loading, empty and error states (checked by `tests/test_ui_standard.py` and `tests/e2e_browser.py`).
+   The build is `succeeded` only if every mandatory check passes; otherwise it is `partially_completed` or `failed`,
+   with reasons (docs/BUILD_LIFECYCLE.md). Enhancements work on a staging copy and replace the app atomically only
+   when everything passes.
+3. **Launch app** runs a verified app in the sandbox, forwards only its port, health-checks it, and offers **Stop**.
+
+Every build follows the bundled UAISES (engineering) and UEUIS (UI: ISO 9241, WCAG 2.2 AA) standards.
 
 ## Install
-In Claude Code:
 ```
 /plugin marketplace add buildsbeyondai-code/reusefirst
 /plugin install reusefirst@reusefirst
 ```
-or from a shell: `claude plugin marketplace add buildsbeyondai-code/reusefirst && claude plugin install reusefirst@reusefirst`.
-Requires Python 3.11+ (standard library only). Builds need the Claude Code CLI. The plugin's SessionStart hook starts the web
-UI at http://127.0.0.1:5057/ if the port is free; optional always-on autostart: `tools/req-analyzer.service`.
-For a working copy: `git clone https://github.com/buildsbeyondai-code/reusefirst && claude plugin marketplace add ./reusefirst`.
+**Requirements:**
+- Linux or WSL2 with Python 3.11+ (standard library only).
+- Builds also need the Claude Code CLI and **bubblewrap** (`sudo apt install bubblewrap`). On Ubuntu 24.04 outside
+  WSL, unprivileged user namespaces may need enabling. Without a verified sandbox, builds are **blocked** and
+  analysis still works; the status bar says why.
+- The SessionStart hook starts the web UI if port 5057 is free.
 
-### Standards
-Builds follow two standards, both bundled in `plugins/req-analyzer/standards/`: the Universal AI Software Engineering
-Standard (UAISES) and the Universal Enterprise UI Standard (UEUIS). To use your own copies, set `REQAN_UAISES` /
-`REQAN_UI_STANDARD`, or put `{"uaises": "<path>", "ui_standard": "<path>"}` in `~/.config/req-analyzer/config.json`.
+**Upgrading from 1.x:** see docs/MIGRATION_2.0.md. The API now needs the session token on every route.
 
-## How closeness is computed (honest limits)
-`closeness = 75% IDF-weighted concept coverage + 25% TF-IDF cosine` over name, description (first 350 chars) and topics,
-with stemming and software synonyms. It is **lexical**, not semantic: two projects that describe the same thing in
-different words score low, and a project that shares vocabulary but does something else can score high. The Claude
-command/skill therefore reviews the top hits semantically before recommending. GitHub search without a token is limited to
-10 searches/min (5 per analysis); set `GITHUB_TOKEN`, or the analyzer uses `gh auth token` if gh is logged in.
+## Honest limits
+- Relevance is **lexical** (IDF-weighted coverage + TF-IDF cosine, generic verbs down-weighted), not semantic, and
+  **not calibrated**: it is not a probability that reuse will succeed.
+- On a 12-query labelled benchmark, 2.0's ranking beats 1.x (NDCG@10 0.763 vs 0.740). The labels were made by the
+  assistant, not independent humans (docs/BENCHMARKS.md).
+- A real end-to-end build with real Claude inside the 2.0 sandbox has **not yet been verified**: it spends usage.
+  The pipeline is tested with a fake Claude CLI and real sandboxing.
+- Whether building with ReuseFirst saves time or money is **not measured yet**. The A/B harness is ready
+  (`tools/value_benchmark.py`, live runs pending).
 
-Requirements: Python ≥3.10, no third-party packages.
+## Development
+- Tests: `python3 -m unittest discover -s tests` (188 tests, ~30 s; needs bwrap for the sandbox tests).
+- Lint: `ruff check .`. Coverage: `coverage run -m unittest discover -s tests && coverage report` (dev tools are in
+  `tools/requirements-dev.lock`).
+- Browser E2E: `tests/e2e_browser.py <url>` (Playwright). Mutation check: `python3 tools/mutate.py`.
+- Benchmark: `python3 tests/benchmark/run_benchmark.py`.
+- CI: `.github/workflows/ci.yml`.
+
+Docs: ARCHITECTURE, SECURITY_MODEL, DISCOVERY_ENGINE, REUSE_POLICY, BUILD_LIFECYCLE, QUALITY_GATES, BENCHMARKS,
+SECURITY_TEST_REPORT, AUDIT_BASELINE, FINAL_AUDIT (all in `docs/`). License: MIT.

@@ -10,20 +10,10 @@ from __future__ import annotations
 import math
 import re
 from collections import Counter
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 # Generic words that carry no product meaning in a requirement.
-STOP = frozenset("""
-a an and are as at be been but by can could do does for from has have how i if in into is it its
-me my of on or our should so some such than that the their them then there these they this to
-too up us was we were what when where which while who will with would you your any all also
-each etc via per like just only very more most other new build building built create make making
-want need needs wanting app apps application applications software tool tools system program
-project projects rather scratch instead give list check checks using use used able allow
-allows something thing things way ways help helps one ones two simple basic based good better
-best first above below user users feature features already exists exist existing whether
-requirement requirements so
-""".split())
+STOP = frozenset(["a", "an", "and", "are", "as", "at", "be", "been", "but", "by", "can", "could", "do", "does", "for", "from", "has", "have", "how", "i", "if", "in", "into", "is", "it", "its", "me", "my", "of", "on", "or", "our", "should", "so", "some", "such", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this", "to", "too", "up", "us", "was", "we", "were", "what", "when", "where", "which", "while", "who", "will", "with", "would", "you", "your", "any", "all", "also", "each", "etc", "via", "per", "like", "just", "only", "very", "more", "most", "other", "new", "build", "building", "built", "create", "make", "making", "want", "need", "needs", "wanting", "app", "apps", "application", "applications", "software", "tool", "tools", "system", "program", "project", "projects", "rather", "scratch", "instead", "give", "list", "check", "checks", "using", "use", "used", "able", "allow", "allows", "something", "thing", "things", "way", "ways", "help", "helps", "one", "ones", "two", "simple", "basic", "based", "good", "better", "best", "first", "above", "below", "user", "users", "feature", "features", "already", "exists", "exist", "existing", "whether", "requirement", "requirements", "so"])
 
 # (display word used in search queries, synonyms). Matching any synonym counts as the concept.
 SYN_GROUPS: list[tuple[str, set[str]]] = [
@@ -44,6 +34,11 @@ SYN_GROUPS: list[tuple[str, set[str]]] = [
     ("authentication", {"auth", "authentication", "login", "oauth", "sso"}),
     ("pdf", {"pdf", "document", "documents", "docx"}),
 ]
+
+# Generic action verbs say WHAT KIND of work, not which product: they get a reduced weight in scoring (2.0 ranking,
+# measured in tests/benchmark). Nouns and domain words carry the requirement's meaning.
+ACTION_WEIGHT = 0.35
+_ACTIONS_RAW = ["generate", "generates", "generating", "write", "writes", "writing", "track", "tracking", "improve", "improving", "manage", "managing", "run", "running", "deploy", "deploying", "create", "get", "set", "add", "show", "view", "open", "edit", "update", "automate", "automatically", "convert", "send", "find", "monitor", "monitoring", "review", "reviewing"]
 
 _SUFFIXES = ("ization", "isation", "ations", "ation", "ments", "ment", "ities", "ity",
              "ings", "ing", "ers", "er", "ies", "es", "ed", "ly", "s")
@@ -66,9 +61,20 @@ for _display, _group in SYN_GROUPS:
         _CANON[stem(_w)] = _key
 
 
+ACTIONS: frozenset = frozenset()
+
+
 def norm(word: str) -> str:
     s = stem(word)
     return _CANON.get(s, s)
+
+
+ACTIONS = frozenset(norm(w) for w in _ACTIONS_RAW)
+
+
+def weighted(idf: Callable[[str], float]) -> Callable[[str], float]:
+    """IDF with generic action verbs down-weighted."""
+    return lambda t: idf(t) * (ACTION_WEIGHT if t in ACTIONS else 1.0)
 
 
 def tokens(text: str) -> list[str]:

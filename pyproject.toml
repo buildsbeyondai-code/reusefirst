@@ -1,0 +1,20 @@
+# Tooling configuration only. ReuseFirst has no runtime dependencies (stdlib only); this is not a package build.
+[tool.ruff]
+line-length = 160
+target-version = "py311"
+extend-exclude = ["plugins/req-analyzer/standards"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "S", "I", "UP", "SIM", "RUF100", "PLW1510"]
+ignore = ["E731", "E741", "E501", "S108", "S608", "SIM102", "S101", "S603", "S607", "S404", "S310", "SIM105", "SIM115", "B023", "UP017", "S311"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "E501", "E702", "E402", "B", "SIM", "PLW1510", "E741"]
+
+[tool.coverage.run]
+branch = true
+source = ["plugins/req-analyzer/app/reqanalyzer"]
+
+[tool.coverage.report]
+show_missing = false
+skip_covered = false

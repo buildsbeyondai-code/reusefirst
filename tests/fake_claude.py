@@ -48,9 +48,22 @@ emit({"type": "assistant", "message": {"content": [
     {"type": "tool_use", "name": "Write", "input": {"file_path": "app.py"}},
     {"type": "tool_use", "name": "TodoWrite", "input": {"todos": [{"status": "completed"}, {"status": "pending"}]}}]}})
 emit({"type": "user", "message": {"content": [{"type": "tool_result", "is_error": True, "content": "Permission denied: rm"}]}})
-Path("app.py").write_text("print('hi')\n")
-Path("run.sh").write_text("#!/bin/sh\nsleep 1\n")
+Path("app.py").write_text("def add(a, b):\n    return a + b\n")
+import re
+
+m = re.search(r"web apps on 127\.0\.0\.1:(\d+)", " ".join(args))
+Path("run.sh").write_text(f"#!/bin/sh\nexec python3 -m http.server {m.group(1) if m else 8000} --bind 127.0.0.1\n")
 Path("docs").mkdir(exist_ok=True)
+Path("tests").mkdir(exist_ok=True)
+Path("tests/test_app.py").write_text("import unittest\nfrom app import add\n\nclass T(unittest.TestCase):\n"
+                                     "    def test_add(self):\n        self.assertEqual(add(1, 2), 3)\n")
+if mode == "badtests":
+    Path("tests/test_app.py").write_text("import unittest\n\nclass T(unittest.TestCase):\n"
+                                         "    def test_x(self):\n        self.fail('broken')\n")
+if mode == "secret":
+    Path("config.py").write_text("password = 'hunter2hunter2'\n")
+for f in ("README.md", "docs/REQUIREMENTS.md", "docs/ARCHITECTURE.md", "docs/DECISIONS.md"):
+    Path(f).write_text(f"# {f}\n")
 Path("docs/COMPLETION_REPORT.md").write_text("## Delivery summary\n- Outcome: built\n")
 Path("docs/REUSE.md").write_text("reused things\n")
 if any("ENHANCING an existing" in a for a in args):
