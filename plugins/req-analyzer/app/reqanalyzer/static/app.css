@@ -1,4 +1,4 @@
-/* Requirement Reuse Analyzer: enterprise stylesheet (UEUIS v1.6 §8, §8.17 enterprise restraint).
+/* Requirement Reuse Analyser: enterprise stylesheet (UEUIS v1.6 §8, §8.17 enterprise restraint).
    Solid colours only: no gradients, glows, gradient text, glass or coloured shadows. Colour lives in small,
    meaningful elements (icons, status chips, borders, charts). Every value is a token; themes change only tokens.
    tests/test_ui_standard.py checks every contrast pair in every theme and forbids decorative gradients. */

@@ -1,4 +1,4 @@
-# Design system: Requirement Reuse Analyzer
+# Design system: Requirement Reuse Analyser
 
 Follows UEUIS v1.2 (OneDrive OPEN SOURCE/UNIVERSAL_ENTERPRISE_UI_STANDARD.md), Enterprise level.
 

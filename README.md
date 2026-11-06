@@ -1,4 +1,4 @@
-# Requirement Reuse Analyzer (Claude Code plugin + local web UI)
+# Requirement Reuse Analyser (Claude Code plugin + local web UI)
 
 Before building an app from a requirement, find what already exists: the closest **Claude Code plugins**
 (every plugin in your installed marketplaces and the Claude plugin directory cache, ~3,600) and **GitHub
@@ -34,13 +34,13 @@ keyboard use, error summary, and loading, empty and error states (checked by `te
 ## Install
 In Claude Code:
 ```
-/plugin marketplace add buildsbeyondai-code/req-analyzer
-/plugin install req-analyzer@req-analyzer
+/plugin marketplace add buildsbeyondai-code/requirement-reuse-analyser
+/plugin install requirement-reuse-analyser@requirement-reuse-analyser
 ```
-or from a shell: `claude plugin marketplace add buildsbeyondai-code/req-analyzer && claude plugin install req-analyzer@req-analyzer`.
+or from a shell: `claude plugin marketplace add buildsbeyondai-code/requirement-reuse-analyser && claude plugin install requirement-reuse-analyser@requirement-reuse-analyser`.
 Requires Python 3.11+ (standard library only). Builds need the Claude Code CLI. The plugin's SessionStart hook starts the web
 UI at http://127.0.0.1:5057/ if the port is free; optional always-on autostart: `tools/req-analyzer.service`.
-For a working copy: `git clone https://github.com/buildsbeyondai-code/req-analyzer && claude plugin marketplace add ./req-analyzer`.
+For a working copy: `git clone https://github.com/buildsbeyondai-code/requirement-reuse-analyser && claude plugin marketplace add ./requirement-reuse-analyser`.
 
 ### Standards
 Builds follow two standards, both bundled in `plugins/req-analyzer/standards/`: the Universal AI Software Engineering

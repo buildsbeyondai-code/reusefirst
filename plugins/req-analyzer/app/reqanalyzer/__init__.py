@@ -1,2 +1,2 @@
-"""Requirement reuse analyzer."""
+"""Requirement reuse analyser."""
 __version__ = "1.11.0"
