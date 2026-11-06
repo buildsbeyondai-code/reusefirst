@@ -383,7 +383,11 @@ H = os.environ["HOME"]; res = {}
 secret = [os.path.join(H, p) for p in (".ssh", ".aws", ".gnupg", ".config/gh", ".claude/.credentials.json",
           ".mozilla", ".config/google-chrome", ".docker", ".kube", ".netrc", ".git-credentials")]
 res["secrets_hidden"] = [p for p in secret if os.path.exists(p)] == []
-res["home_empty"] = os.listdir(H) == []
+res["home_empty"] = os.path.isdir(H) and os.listdir(H) == []
+try:
+    open(os.path.join(H, ".probe"), "w").write("x"); os.remove(os.path.join(H, ".probe")); res["home_writable_tmpfs"] = True
+except OSError:
+    res["home_writable_tmpfs"] = False
 res["host_state_hidden"] = not os.path.exists(sys.argv[1])
 try:
     open("/usr/reusefirst-probe", "w"); res["system_readonly"] = False

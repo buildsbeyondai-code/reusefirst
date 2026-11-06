@@ -25,7 +25,7 @@ class IsolationTests(unittest.TestCase):
     def test_self_test_all_checks(self):
         st = sandbox.self_test(force=True)
         self.assertTrue(st["ok"], st)
-        for k in ("secrets_hidden", "home_empty", "host_state_hidden", "host_loopback_blocked", "direct_egress_blocked",
+        for k in ("secrets_hidden", "home_empty", "home_writable_tmpfs", "host_state_hidden", "host_loopback_blocked", "direct_egress_blocked",
                   "proxy_denies_unlisted", "env_clean", "docker_socket_absent", "no_capabilities", "pid_namespace"):
             self.assertTrue(st["checks"][k], k)
 

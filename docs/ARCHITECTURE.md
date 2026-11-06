@@ -1,6 +1,6 @@
 # Architecture
 
-Layered modular monolith, one process, stdlib only. Dependencies point downward.
+Layered modular monolith, one process, stdlib only (2.0). Dependencies point downward.
 
 ```
 static/ (UI: index.html, app.js, app.css)     cli.py (Claude plugin entry)
@@ -27,15 +27,32 @@ repo/plugin text is untrusted data rendered with `textContent` (no innerHTML) an
 Failure modes: catalog missing/corrupt → listed in `errors`, plugin list empty; GitHub 403/429 → `rate-limited`, stop querying;
 GitHub down → `failed`; port in use → server exits 76 (hook then leaves the existing server alone).
 
-Build tab (`builder.py`, application layer):
-- `required_inputs()` = standard UAISES-grouped fields + `claude -p --tools "" --json-schema` (UAISES §2 text in the prompt) → sanitised
-  (select values checked, secrets/duplicates dropped, max 12 questions). Reuse checklist comes from `engine.analyze` (closest pre-ticked).
-- `BuildManager` = single worker thread per build, one build at a time. Writes BUILD_SPEC.md + the UAISES standard into the new folder, runs
-  `claude -p --output-format stream-json --permission-mode dontAsk --allowedTools <allowlist> --max-budget-usd N` with cwd = new folder,
-  own process group (cancel/timeout kill the group), streams events → `summarize()` → job.events; job.json saved atomically every 5 s
-  under `~/.local/state/req-analyzer/builds/<id>/` with the raw `stream.jsonl`.
-- Trust boundary: the build executes code as the user. Mitigations: localhost + Host check + JSON-only + session token, folder confinement
-  (Claude Code edits limited to cwd), allowlist without rm/sudo/push/arbitrary curl, spending cap, time limit.
+Build pipeline (2.0, `builder.py` application layer). `docs/BUILD_LIFECYCLE.md` has the states.
+
+```
+server.py ──> builder.BuildManager ──> lifecycle (state machine, transitions recorded)
+                 │  PREPARING: enhance backup+verify, staging copy, baseline tests; reuse.prepare (sandboxed pinned clones)
+                 │  RUNNING:   sandbox.Run(claude -p …) egress = Claude API + package registries
+                 │  VERIFYING: gates.run_all (sandboxed, no network) -> decide()
+                 │  apply (enhance): manifest check -> renameat2(RENAME_EXCHANGE)
+                 └─ launch: sandbox.Run(run.sh) + InboundForwarder (port only), health check, stop
+sandbox.py:  bwrap command builder · EgressProxy (CONNECT allowlist, public IPs only) · InboundForwarder · self_test
+sbx_init.py: runs INSIDE the sandbox: relays 127.0.0.1:3128 <-> egress socket, inbound socket <-> app port; execs the command
+```
+
+Analysis pipeline (2.0): `engine.analyze` = profile (Stage A) → providers in `sources.py` (plugins, GitHub, npm,
+crates.io; Stage B) → lexical scoring with action-verb weighting (C) → README evidence for the top 5 (D) →
+per-candidate evaluation and `decision.decide` (E). See docs/DISCOVERY_ENGINE.md.
+
+Modules (dependencies point downward; stdlib only):
+- presentation: `server.py`, `cli.py`, `static/`;
+- application: `engine.py`, `builder.py`, `gates.py`, `reuse.py`;
+- domain (pure): `textscore.py`, `policy.py`, `lifecycle.py`, `decision.py`;
+- infrastructure: `sources.py`, `sandbox.py`, `sbx_init.py`, `history.py`, `obs.py`.
+
+Trust boundaries: see docs/SECURITY_MODEL.md. The working directory and the tool allowlist are **not** the boundary;
+the sandbox is.
 
 Plugin: `.claude-plugin/plugin.json`, `skills/reusefirst/SKILL.md` (one skill: analyze, build, enhance, status),
-`hooks/hooks.json` → `hooks/ensure_server.py` (SessionStart; starts the server detached if 5057 is free).
+`hooks/hooks.json` → `hooks/ensure_server.py` (SessionStart; starts the server detached if 5057 is free; refuses
+non-Linux and Python < 3.11 with a message).

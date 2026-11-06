@@ -1,0 +1,5 @@
+bandit==1.9.4
+coverage==7.17.2
+cyclonedx-bom==8.0.1
+ruff==0.17.4
+pip-audit==2.10.1

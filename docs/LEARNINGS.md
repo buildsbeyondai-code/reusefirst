@@ -1,6 +1,6 @@
 # Learnings
 
-Fast loop: `python3 -m unittest discover -s tests` (74 tests, ~12 s; uses fixture catalogs + a fake GitHub server, no network).
+Fast loop: `python3 -m unittest discover -s tests` (188 tests, ~30 s; fixture catalogs, a fake GitHub/npm/crates server, fake Claude, real bubblewrap; no network).
 Browser E2E (real catalog + real GitHub, needs the server running):
 `<any Python with Playwright + Chromium> tests/e2e_browser.py http://127.0.0.1:5057/ <screenshot dir>`
 
@@ -54,3 +54,22 @@ Traps:
 - Never restart the 5057 server while a build is running: the build is marked interrupted.
 - The SessionStart hook runs from the installed plugin cache (~/.claude/plugins/cache/reusefirst/reusefirst/<version>), not from the working copy. After changing code, bump the version and run `claude plugin update reusefirst@reusefirst`, or the next session starts the old cached server. Until 1.12 the cache was still 1.0.0.
 - 1.13: one skill only (`skills/reusefirst`). A plugin with both a command and a skill shows as two entries in the `/` menu, which users read as two plugins.
+
+## 2.0 (sandbox, gates, discovery)
+- Map of where things live: sandbox = `sandbox.py` (host side) + `sbx_init.py` (inside, stdlib only, mounted
+  read-only at /opt/reusefirst). Gates = `gates.py`. Reuse clones = `reuse.py`. Licence rules = `policy.py`. States =
+  `lifecycle.py`. Decision = `decision.py`. Logging and redaction = `obs.py`.
+- Test hooks for the sandbox: `REQAN_SANDBOX_PASS_ENV` (env names passed to the fake claude) and
+  `REQAN_SANDBOX_EXTRA_RW` (extra writable paths). helpers.py sets both. They are never needed in production.
+- `pgrep -f 'sleep 300'` matches the shell that runs pgrep. Anchor the pattern (`'^sleep 301$'`).
+- `unittest discover -s tests -t .` fails when tests/ is not a package ("Start directory is not importable"). The
+  test gate uses `discover -s tests` (cwd is on sys.path).
+- Do not monkeypatch `socket.getaddrinfo` with a 2-argument lambda: `create_connection` calls it with 4.
+- An f-string that reuses its own quote character inside `{}` only parses on Python 3.12+. ruff (target py311)
+  catches it. 1.x shipped one.
+- A real `claude -p` works inside the sandbox with HOME = tmpfs plus a read-only bind of
+  `~/.claude/.credentials.json`. No `~/.claude.json` is needed. It tries `mcp-proxy.anthropic.com`, which the proxy
+  denies harmlessly.
+- Benchmark: name double-counting looked plausible but made NDCG worse. Measure before keeping a ranking change.
+- Playwright Python lives in `~/apps/resume-matched-job-finder/.venv` on this PC. For E2E, start a throwaway server
+  with `REQAN_STATE_DIR=<tmp> python3 -m reqanalyzer.server --port 5099`.

@@ -1,0 +1,90 @@
+# ReuseFirst CI: deterministic, no paid Claude usage, no secrets. Third-party actions pinned to commit SHAs.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Sandbox runtime (bubblewrap; Ubuntu 24.04 restricts unprivileged user namespaces via AppArmor)
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+      - name: Dev tools (pinned)
+        run: python -m pip install -r tools/requirements-dev.lock
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Security static analysis (bandit, medium+)
+        run: bandit -q -r plugins/req-analyzer/app -ll
+      - name: Sandbox self-test (fails closed if isolation is not verified)
+        run: PYTHONPATH=plugins/req-analyzer/app python -c "from reqanalyzer import sandbox; import json,sys; r=sandbox.self_test(); print(json.dumps(r, indent=1)); sys.exit(0 if r['ok'] else 1)"
+      - name: Unit, integration, security, sandbox and E2E-with-fakes tests + coverage
+        run: |
+          coverage run -m unittest discover -s tests
+          coverage report --fail-under=85
+          coverage xml
+      - name: Retrieval benchmark (labelled, offline)
+        run: python tests/benchmark/run_benchmark.py
+      - name: Packaging smoke test (plugin manifests and skill load)
+        run: |
+          python - <<'PY'
+          import json, pathlib, re, sys
+          sys.path.insert(0, "plugins/req-analyzer/app")
+          import reqanalyzer
+          p = json.load(open("plugins/req-analyzer/.claude-plugin/plugin.json"))
+          m = json.load(open(".claude-plugin/marketplace.json"))
+          assert p["version"] == m["plugins"][0]["version"] == reqanalyzer.__version__, "version drift"
+          skill = pathlib.Path("plugins/req-analyzer/skills/reusefirst/SKILL.md").read_text()
+          assert re.match(r"---\nname: reusefirst\n", skill), "skill front matter"
+          hooks = json.load(open("plugins/req-analyzer/hooks/hooks.json"))
+          assert hooks["hooks"]["SessionStart"], "SessionStart hook"
+          print("plugin", p["version"], "ok")
+          PY
+      - name: SBOM (CycloneDX) of the dev toolchain
+        if: matrix.python == '3.12'
+        run: cyclonedx-py environment --of JSON -o sbom-dev.cdx.json
+      - name: Dependency vulnerability audit (dev toolchain; runtime is stdlib only)
+        if: matrix.python == '3.12'
+        run: pip-audit -r tools/requirements-dev.lock
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: matrix.python == '3.12'
+        with:
+          name: evidence
+          path: |
+            coverage.xml
+            sbom-dev.cdx.json
+
+  mutation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: |
+          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+      - name: Controlled-fault check of high-risk controls
+        run: python tools/mutate.py
