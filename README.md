@@ -54,8 +54,10 @@ Every build follows the bundled UAISES (engineering) and UEUIS (UI: ISO 9241, WC
 **Upgrading from 1.x:** see docs/MIGRATION_2.0.md. The API now needs the session token on every route.
 
 ## Honest limits
-- Relevance is **lexical** (IDF-weighted coverage + TF-IDF cosine, generic verbs down-weighted), not semantic, and
-  **not calibrated**: it is not a probability that reuse will succeed.
+- Relevance is **lexical** (IDF-weighted coverage + TF-IDF cosine, generic verbs down-weighted) and **not
+  calibrated**: it is not a probability that reuse will succeed. Tick **Deep check with Claude** for a semantic
+  review of the top 8 candidates. That improved the labelled benchmark from NDCG@10 0.763 to 0.908, but the labels
+  are Claude-made, so the comparison is circular.
 - On a 12-query labelled benchmark, 2.0's ranking beats 1.x (NDCG@10 0.763 vs 0.740). The labels were made by the
   assistant, not independent humans (docs/BENCHMARKS.md).
 - A real end-to-end build with real Claude inside the 2.0 sandbox has **not yet been verified**: it spends usage.

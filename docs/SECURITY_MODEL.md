@@ -52,12 +52,21 @@ linters, `git status` on generated repos, the launch check, and launched apps.
   - The project size is capped at 6 GiB (`REQAN_MAX_PROJECT_MB`) by a watchdog.
   - Timeouts and cancel kill the whole process group. The pid namespace guarantees no survivors when the sandbox
     init exits.
-- **The one deliberate secret:** the Claude credential file is bind-mounted **read-only** into the build agent's
-  sandbox, and only there, because Claude Code cannot run without it.
-  - Residual risk: code generated during the build could read it. It could send it only to the four allowlisted
-    hosts, or write it into the project folder.
-  - Mitigation: the secret-scan gate fails a build that leaves known token patterns in its files.
-  - The credential is never mounted for clones, tests or launched apps.
+- **The one deliberate secret (2.0.2: no longer readable by generated code):**
+  - The Claude credential file is bind-mounted read-only into the build agent's sandbox only, because Claude Code
+    needs it to authenticate. It is never mounted for clones, tests or launched apps.
+  - Inside that sandbox, every Bash command the agent runs (generated code, tests, installs) runs in Claude Code's
+    own nested Bash sandbox. That is configured with the documented `--settings`:
+    - `sandbox.enabled`, `failIfUnavailable: true` and `allowUnsandboxedCommands: false`;
+    - `credentials.files` and `filesystem.denyRead` cover `~/.claude/.credentials.json` and `~/.claude.json`;
+    - `credentials.envVars` deny the API-key variables;
+    - network is allowed only to the package registries.
+  - `Read(...)` deny rules cover the Read tool, and `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` strips credentials from
+    subprocess environments.
+  - Verified: a sandboxed `open()` of a denied decoy file raises PermissionError, `/proc/1/environ` is unreadable,
+    and pypi.org stays reachable for installs.
+  - Remaining exposure: the agent process itself can read the credential (it must). The secret-scan gate fails builds
+    that leave tokens in files.
 - **Fail closed:** `self_test()` runs 13 harmless adversarial probes at start-up: secrets hidden, home
   empty/writable, host state hidden, `/usr` read-only, project writable, host loopback blocked, direct egress
   blocked, proxy denies unlisted hosts, environment cleared, no Docker socket, no capabilities, pid namespace.
@@ -74,8 +83,10 @@ linters, `git status` on generated repos, the launch check, and launched apps.
   - It is written to `~/.local/state/req-analyzer/session.token` (0600) for the CLI and skill.
   - `/api/session` gives it to same-origin page scripts only. `REQAN_STRICT_TOKEN=1` disables it, and the UI then
     takes the token from a `#token=` link.
-  - Residual risk: without strict mode, another local OS user could request `/api/session` with forged headers.
-    ReuseFirst's target is a single-user WSL2 machine. Use strict mode on shared hosts.
+  - **Same-user check (2.0.2):** every `/api/*` request except `/api/health` must come from a loopback socket owned
+    by this user or root. The owner uid comes from `/proc/net/tcp*`. Root is allowed because WSL's localhost relay
+    for Windows browsers runs as root. Other local accounts are refused even with a token. Residual: other *Windows*
+    users of the same PC arrive through the same root relay.
 - **HTTP:**
   - POST needs a non-negative Content-Length of at most 64 KiB (411/400/413). Transfer-Encoding is refused.
   - Body must be JSON (415). Sockets time out after 15 s, and at most 32 requests are in flight (503 beyond that).

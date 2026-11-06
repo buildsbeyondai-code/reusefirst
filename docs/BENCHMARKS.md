@@ -31,12 +31,33 @@ them with the commands given.
 - A first v2 attempt (counting the name twice) was **worse** (NDCG@10 0.717) and was dropped.
 - `tests/test_benchmark.py` fails CI if v2 falls below v1.
 
+### Semantic review (2.0.2, `python3 tests/benchmark/run_semantic.py`)
+Claude's functional-fit judgement re-orders the v2 top 15. The judgements are cached in
+`semantic_judgements.json`, so the metrics recompute offline. The live run cost $1.12 (model-reported).
+
+| Ranker | P@5 | R@10 | MRR | NDCG@10 |
+|---|---|---|---|---|
+| v2 (lexical) | 0.750 | 0.771 | 0.958 | 0.763 |
+| **v2 + semantic review** | **0.850** | **0.799** | **1.000** | **0.908** |
+
+**Strong caveat:** the labels were also written by Claude, so this comparison is circular. It partly measures
+agreement with the labeller. Treat it as evidence that the semantic stage behaves sensibly, not as a proven
+retrieval gain.
+
+### Rejected experiments (measured, not kept)
+- Counting the name twice: NDCG@10 0.717.
+- A stemmer with plural, `-ied` and doubled-consonant rules: NDCG@10 0.738, and it introduced stems such as
+  "automatical".
+- Extra stop words: neutral (identical metrics). They were kept, because they cut a real long requirement from 59
+  concepts to 51.
+
 **Limitations (important).**
 - The labels were produced by the assistant reading names and descriptions. They are **not independent human
   judgements**, and the same model family wrote the ranker. The evaluation is therefore partly circular.
 - 12 queries is a small set, and the pooled judgements leave items unjudged outside the pool.
 - Only the plugin corpus is benchmarked. GitHub, npm and crates.io ranking is NOT VERIFIED by a labelled benchmark.
 - No calibration of displayed scores was possible.
+- The semantic numbers share the circularity above.
 
 ## Latency (measured)
 | Operation | Result |

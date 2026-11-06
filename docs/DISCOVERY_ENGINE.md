@@ -30,7 +30,7 @@ The pipeline is in `engine.analyze`. Every stage is deterministic and bounded in
 - 2.0 down-weights generic action verbs (generate, track, manage, review…) to 0.35, because nouns carry the
   product meaning. This is measured in docs/BENCHMARKS.md.
 - Language compatibility is checked against the profile (`pass` / `fail` / `unknown`).
-- There is **no semantic model**: results carry `confidence_mode: "lexical-only (reduced confidence…)"`.
+- Without the optional semantic review, results carry `confidence_mode: "lexical-only (reduced confidence…)"`.
 - Ties break deterministically: score, then stars, then id.
 
 **Stage D: evidence inspection.**
@@ -52,9 +52,25 @@ The pipeline is in `engine.analyze`. Every stage is deterministic and bounded in
 - `recommendation`: reuse / extend / borrow / borrow ideas / build new / **insufficient evidence**.
 - `auto_reuse_eligible` with reasons (docs/REUSE_POLICY.md).
 
+**Stage C+: optional semantic review (`semantic.py`, 2.0.2).**
+- When "Deep check with Claude" is ticked (`semantic: true`, CLI `--semantic`), Claude judges the functional fit
+  (0–100), coverage, gaps and kind of the top 8 candidates. The input is their descriptions and README excerpts.
+- **Safety:**
+  - the call has no tools, no MCP servers (`--strict-mcp-config`), and Claude-API-only egress in the sandbox;
+  - candidate text is fenced as `<untrusted>`;
+  - the output is schema-validated, unknown ids are ignored, and scores are clamped.
+- **Effects:**
+  - recommendations use the semantic fit;
+  - pre-selection requires both the lexical coverage and the fit to pass;
+  - evidence confidence rises (+20, capped at 95);
+  - the decision engine uses the fit and the named gaps.
+- It is off by default because it spends the user's Claude usage (about $0.05–0.10 per analysis).
+
 **Decision (`decision.py`).**
 - Compares reusing the top 3 candidates (coverage ≥ 30%) with building new, in **relative effort units** (1 unit ≈
   build and test one capability).
+- Capabilities are estimated as the first 8 key concepts plus a third of the rest, capped at 25. 2.0.0 counted every
+  concept and inflated long requirements: 59 concepts became 61–122 units.
 - Each estimate is a low–high range with listed assumptions: adaptation, missing capabilities, integration,
   licence overhead, maintenance exposure and evidence uncertainty.
 - Includes a sensitivity check (what happens if missing capabilities cost twice as much).

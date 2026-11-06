@@ -14,6 +14,7 @@ sandbox with **no network**.
 | vulnerabilities | yes | OSV reports no known vulnerability for pinned dependencies (offline = NOT VERIFIED) |
 | provenance | yes (if reuse) | REUSE_PROVENANCE.md exists and `upstream/` is not committed |
 | launch | yes (server apps) | `run.sh` starts in the sandbox and answers HTTP < 500 on its port within 45 s |
+| skipped_tests | advisory | no test was skipped in the verifier (skipped tests are never counted as passed) |
 | sbom | advisory | `docs/sbom.cdx.json` (CycloneDX 1.5) written; VERIFIED when all dependencies are pinned |
 | static_analysis | advisory | the project's own ruff is clean (NOT VERIFIED if it has none) |
 | git | advisory | working tree clean (only when git was requested) |

@@ -26,6 +26,19 @@
 | Tests that try the network or read home from inside the verifier | the network raises OSError and home is empty (`test_tests_cannot_reach_network_or_home`) |
 | Sandbox missing (bwrap absent) | `self_test().ok == False`, `require()` raises, builds are **blocked** (fail closed) |
 
+**Nested Bash sandbox (2.0.2, real Claude, small paid runs).** Claude ran inside the ReuseFirst sandbox with the
+build's `--settings`:
+- A Bash `open()` of a decoy secret that `filesystem.denyRead` covers raised **PermissionError**.
+- `/proc/1/environ` was unreadable.
+- `https://pypi.org/simple/pip/` returned 200 through the proxy chain, so installs still work.
+- A redirect from the credential path was blocked by the permission layer before execution.
+- The real credential was deliberately not read in the test. The auto-mode classifier also refused that probe, so
+  the decoy proves the mechanism instead.
+
+**Same-user check (2.0.2).** A WSL client connects with uid 1002 (this user) and a Windows `curl.exe` arrives as
+uid 0 (WSL relay); both are accepted. A simulated other account is refused on `/api/session` and on a token-holding
+`/api/builds`; `/api/health` stays public. Covered by `test_security.LocalUserTests`.
+
 **Real Claude in the sandbox:** one `claude -p` call (no tools) succeeded through the egress proxy. The proxy log shows
 `api.anthropic.com` allowed and `mcp-proxy.anthropic.com` denied. A full real build in the 2.0 sandbox is
 **NOT VERIFIED**: it spends usage and needs the user's approval.
