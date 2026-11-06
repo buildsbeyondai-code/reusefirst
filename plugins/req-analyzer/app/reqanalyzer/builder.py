@@ -695,6 +695,7 @@ Budget: you have about {a['max_minutes']} minutes; prioritise working, tested mu
 
 IDEMPOTENCY_TTL_S = 600
 MINUTE_S = 60.0  # tests shrink this to exercise the time limit
+SIZE_CHECK_S = 60.0  # how often the watchdog measures the project size
 MAX_PROJECT_BYTES = int(os.environ.get("REQAN_MAX_PROJECT_MB", "6144")) * 1024 * 1024
 STAGING_DIRNAME = ".reusefirst-staging"
 AT_FDCWD, RENAME_EXCHANGE = -100, 2
@@ -1106,7 +1107,7 @@ class BuildManager:
                     job["timed_out"] = True
                     r.kill()
                     return
-                if time.time() - last_size > 60:
+                if time.time() - last_size > SIZE_CHECK_S:
                     last_size = time.time()
                     if dir_bytes(work, MAX_PROJECT_BYTES) <= MAX_PROJECT_BYTES:
                         continue
