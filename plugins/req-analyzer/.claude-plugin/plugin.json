@@ -1,6 +1,6 @@
 {
   "name": "reusefirst",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "ReuseFirst (Reuse-First Builder): finds the closest existing Claude plugins and GitHub open-source projects for a requirement (% closeness, reuse/extend/build verdict), then builds a new app or enhances an existing one with Claude Code to bundled engineering (UAISES) and UI (UEUIS) standards. Web UI at http://127.0.0.1:5057/.",
   "author": {
     "name": "buildsbeyondai-code"

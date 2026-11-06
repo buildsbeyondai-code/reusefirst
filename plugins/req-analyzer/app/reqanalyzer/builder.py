@@ -833,6 +833,19 @@ def exchange(a: Path, b: Path) -> None:
         raise OSError(err, os.strerror(err))
 
 
+def strip_agent_leftovers(staging: Path, target: Path) -> list[str]:
+    """Claude Code's own Bash sandbox creates mount points (e.g. an empty .claude/ with commands/, agents/, .cc-writes)
+    inside the project. Remove top-level ones the app did not have before, but only when they hold no regular file."""
+    removed = []
+    for name in (".claude",):
+        p = staging / name
+        if p.is_dir() and not p.is_symlink() and not (target / name).exists() and \
+                not any(f.is_file() and f.stat().st_size > 0 for f in p.rglob("*")):
+            shutil.rmtree(p)
+            removed.append(name)
+    return removed
+
+
 def proc_start(pid: int) -> str | None:
     try:
         return Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[19]
@@ -938,12 +951,23 @@ class BuildManager:
         with self.lock:
             return next((j for j in self.jobs.values() if L.is_active(j["status"])), None)
 
+    def reverify(self, job_id: str, idem_key: str | None = None, requirement: str | None = None,
+                 answers: dict | None = None, labels: dict | None = None) -> dict:
+        """Re-run only the verification gates on a partially completed build's finished work (no agent, no usage),
+        and apply it if every mandatory gate now passes. For when a check could not run, not when code was wrong."""
+        with self.lock:
+            prev = self.jobs.get(job_id)
+        if not prev or prev["status"] != L.PARTIALLY_COMPLETED:
+            raise BuildError("only a partially completed build can be verified again")
+        return self.resume(job_id, idem_key, requirement, answers, labels, verify_only=True)
+
     def resume(self, job_id: str, idem_key: str | None = None, requirement: str | None = None,
-               answers: dict | None = None, labels: dict | None = None) -> dict:
+               answers: dict | None = None, labels: dict | None = None, verify_only: bool = False) -> dict:
         """Continue a build that stopped before finishing (usage limit, crash, timeout, cancel), from the work it did."""
         with self.lock:
             prev = self.jobs.get(job_id)
-        if not prev or prev["status"] not in (L.FAILED, L.TIMED_OUT, L.INTERRUPTED, L.CANCELLED):
+        allowed = (L.PARTIALLY_COMPLETED,) if verify_only else (L.FAILED, L.TIMED_OUT, L.INTERRUPTED, L.CANCELLED)
+        if not prev or prev["status"] not in allowed:
             raise BuildError("only a failed, timed-out, interrupted or cancelled build can be resumed")
         spec = prev.get("spec") or {}
         requirement = requirement or spec.get("requirement")
@@ -956,7 +980,8 @@ class BuildManager:
         elif str(answers.get("output_dir", "")).strip() and \
                 str(Path(os.path.expanduser(str(answers["output_dir"]).strip())).resolve()) != prev["output_dir"]:
             raise BuildError("a resumed build must use the same folder")
-        return self.start(requirement, answers, labels or spec.get("labels"), idem_key, prev.get("analysis_id"), resume_from=prev)
+        return self.start(requirement, answers, labels or spec.get("labels"), idem_key, prev.get("analysis_id"),
+                          resume_from={**prev, "_verify_only": verify_only})
 
     def start(self, requirement: str, answers: dict, labels: dict | None = None, idem_key: str | None = None,
               analysis_id: str | None = None, resume_from: dict | None = None) -> dict:
@@ -973,6 +998,7 @@ class BuildManager:
         a = validate_spec(requirement, answers, resuming=bool(resume_from))
         if resume_from:
             a["_resume"] = {k: resume_from.get(k) for k in ("id", "error", "staging_dir", "baseline_tests", "provenance")}
+            a["_verify_only"] = bool(resume_from.get("_verify_only"))
         standard = uaises_text()  # mandatory: every build follows UAISES
         ui_standard = ui_standard_text()  # and every UI follows UEUIS
         try:
@@ -1002,6 +1028,7 @@ class BuildManager:
         job["spec"] = {"requirement": requirement, "answers": answers, "labels": labels or {}}  # for resume
         if resume_from:
             job["resume_from"] = resume_from["id"]
+            job["verify_only"] = bool(resume_from.get("_verify_only"))
         self._save(job)
         METRICS.inc("builds_started")
         threading.Thread(target=self._worker, args=(job, a, requirement, labels or {}, standard, ui_standard, exe),
@@ -1112,7 +1139,11 @@ class BuildManager:
         if self._cancelled(job):
             return self._to(job, L.CANCELLED, "cancelled by user")
 
-        final, code = self._run_claude(job, a, work, inside, exe)
+        if a.get("_verify_only"):
+            self._event(job, "info", f"Verifying build {a['_resume']['id']}'s finished work again (no agent run)")
+            final, code = {"subtype": "success", "is_error": False}, 0
+        else:
+            final, code = self._run_claude(job, a, work, inside, exe)
         if job["status"] in L.TERMINAL:
             return
         if self._cancelled(job):
@@ -1250,6 +1281,9 @@ class BuildManager:
             elif p.exists() and n in CARRY_OVER:
                 shutil.rmtree(p) if p.is_dir() and not p.is_symlink() else p.unlink()  # build must not ship its own copy
         job["swap"]["carry"] = list(job.get("carried_over") or [])
+        removed = strip_agent_leftovers(staging, target)
+        if removed:
+            self._event(job, "info", f"Removed sandbox-only leftovers before applying: {', '.join(removed)}")
         self._save(job)
         try:
             exchange(staging, target)

@@ -367,17 +367,53 @@ def http_ok(port: int, deadline_s: float) -> tuple[bool, str]:
     return False, last
 
 
+_PORT_PATTERNS = [
+    re.compile(r"""environ\.get\(\s*["']([A-Z][A-Z0-9_]*PORT[A-Z0-9_]*)["']\s*,\s*["']?(\d{2,5})"""),
+    re.compile(r"""getenv\(\s*["']([A-Z][A-Z0-9_]*PORT[A-Z0-9_]*)["']\s*,\s*["']?(\d{2,5})"""),
+    re.compile(r"""\$\{([A-Z][A-Z0-9_]*PORT[A-Z0-9_]*):-(\d{2,5})\}"""),
+    re.compile(r"""process\.env\.([A-Z][A-Z0-9_]*PORT[A-Z0-9_]*)\s*(?:\|\||\?\?)\s*["']?(\d{2,5})"""),
+]
+
+
+def detect_port(w: Path) -> tuple[str | None, int | None]:
+    """(env var, default port) the app reads its port from, found in run.sh, then its source (read, never executed)."""
+    files = [w / "run.sh"] + [p for p in project_files(w, (".py", ".js", ".mjs", ".ts", ".sh"), max_files=400)]
+    for f in files:
+        try:
+            text = f.read_text(errors="ignore")[:200_000]
+        except OSError:
+            continue
+        for rx in _PORT_PATTERNS:
+            m = rx.search(text)
+            if m:
+                return m.group(1), int(m.group(2))
+    return None, None
+
+
+def free_port() -> int:
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
 def g_launch(w: Path, port: int | None, app_type: str | None, inside: Path | None = None) -> dict:
     if app_type not in WEB_TYPES:
         return gate("launch", "App starts and serves (sandboxed)", False, NA, "not a server app")
     if not (w / "run.sh").is_file():
         return gate("launch", "App starts and serves (sandboxed)", True, FAILED, "run.sh missing")
+    var, default = detect_port(w)
+    port = port or default
+    env = {}
+    if var and (not port or not free_host_port(port)):
+        port = free_port()  # the user's own copy may be running on the default port: check on a free one
+        env = {var: str(port), "PORT": str(port)}
     if not port:
-        return gate("launch", "App starts and serves (sandboxed)", True, NOT_VERIFIED, "no port configured")
+        return gate("launch", "App starts and serves (sandboxed)", True, NOT_VERIFIED,
+                    "no port configured and none found in run.sh or the source")
     if not free_host_port(port):
         return gate("launch", "App starts and serves (sandboxed)", True, NOT_VERIFIED, f"port {port} is busy on the host")
     try:
-        r = sandbox.Run(sandbox.Spec(workdir=w, mount_as=inside, inbound_port=port, memory_mb=1024, tasks=256),
+        r = sandbox.Run(sandbox.Spec(workdir=w, mount_as=inside, inbound_port=port, memory_mb=1024, tasks=256, env=env),
                         ["/bin/bash", "./run.sh"], stdout=open(os.devnull, "w"), stderr=open(os.devnull, "w"))
     except (sandbox.SandboxUnavailable, OSError) as e:
         return gate("launch", "App starts and serves (sandboxed)", True, BLOCKED, str(e))
@@ -386,7 +422,7 @@ def g_launch(w: Path, port: int | None, app_type: str | None, inside: Path | Non
     finally:
         r.close()
     return gate("launch", "App starts and serves (sandboxed)", True, VERIFIED if ok else FAILED,
-                f"GET / on 127.0.0.1:{port}: {why}")
+                f"GET / on 127.0.0.1:{port}: {why}" + (f" (port set with {var})" if env else ""))
 
 
 # --------------------------------------------------------------- decision

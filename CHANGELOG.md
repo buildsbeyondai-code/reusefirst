@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.1 — 2026-11-06
+Found by the real job-finder enhancement, which ended `partially_completed` with "no port configured":
+- **Start-up check finds the app's port.** The launch gate reads the port variable from `run.sh` or the source
+  (`os.environ.get("X_PORT", "5070")`, `${X_PORT:-N}`, `process.env.X_PORT || N`). When that port is busy, for
+  example because your own copy is running, it checks on a free port.
+- **Verify again** (`POST /api/builds/<id>/verify`, plus a button): re-runs only the gates on a partially completed
+  build's finished work. No agent runs and no Claude usage is spent, and the work is applied if every mandatory gate
+  passes.
+- **Leftover cleanup:** the empty `.claude/` mount-point folder that Claude Code's Bash sandbox leaves in the project
+  is removed before applying. Folders with real files are kept.
+
 ## 2.1.0 — 2026-11-06
 - **Resume:** a failed, timed-out, interrupted or cancelled build continues from the work it already did
   (`POST /api/builds/<id>/resume`, plus a **Resume build** button).

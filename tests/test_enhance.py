@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import tarfile
+import tempfile
 import threading
 import unittest
 from pathlib import Path
@@ -206,6 +207,34 @@ class EnhanceTests(unittest.TestCase):
         shutil.rmtree(r["staging_dir"], ignore_errors=True)
         with self.assertRaisesRegex(builder.BuildError, "only a failed"):
             self.mgr.resume("nope")
+
+    def test_verify_again_applies_without_agent(self):
+        orig = builder.gates.g_vulns
+        builder.gates.g_vulns = lambda deps: builder.gates.gate("vulnerabilities", "OSV", True, builder.gates.NOT_VERIFIED, "offline")
+        try:
+            j = wait(self.mgr, self.mgr.start("x", enhance_answers(self.app), {})["id"])
+        finally:
+            builder.gates.g_vulns = orig
+        self.assertEqual(j["status"], "partially_completed")
+        self.assertFalse((self.app / "app.py").exists())  # not applied
+        (Path(j["staging_dir"]) / ".claude" / "agents").mkdir(parents=True)  # sandbox leftover
+        Path(os.environ["FAKE_CLAUDE_ARGV"]).unlink(missing_ok=True)
+        r = wait(self.mgr, self.mgr.reverify(j["id"])["id"])
+        self.assertEqual(r["status"], "succeeded", r.get("reasons"))
+        self.assertTrue(r["verify_only"])
+        self.assertFalse(Path(os.environ["FAKE_CLAUDE_ARGV"]).exists())  # the agent never ran
+        self.assertTrue((self.app / "app.py").exists())  # applied now
+        self.assertFalse((self.app / ".claude").exists())  # leftover stripped
+        self.assertEqual([t["to"] for t in r["transitions"]][-3:], ["preparing", "verifying", "succeeded"])
+        with self.assertRaisesRegex(builder.BuildError, "only a partially completed"):
+            self.mgr.reverify(r["id"])
+
+    def test_leftover_with_real_files_is_kept(self):
+        s, t = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+        (s / ".claude").mkdir()
+        (s / ".claude" / "settings.json").write_text("{}")
+        self.assertEqual(builder.strip_agent_leftovers(s, t), [])
+        self.assertTrue((s / ".claude" / "settings.json").exists())
 
     def test_symlinked_app_rejected(self):  # regression A17
         link = APPS / "linked"

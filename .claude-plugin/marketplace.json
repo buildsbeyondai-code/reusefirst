@@ -11,7 +11,7 @@
       "name": "reusefirst",
       "source": "./plugins/req-analyzer",
       "description": "ReuseFirst (Reuse-First Builder): analyse a requirement against existing Claude plugins and GitHub open-source projects (% closeness, reuse verdict), then build a new app or enhance an existing one with Claude Code, following bundled engineering (UAISES) and UI (UEUIS) standards. Web UI at http://127.0.0.1:5057/.",
-      "version": "2.1.0",
+      "version": "2.1.1",
       "category": "productivity",
       "homepage": "https://github.com/buildsbeyondai-code/reusefirst"
     }

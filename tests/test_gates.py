@@ -98,6 +98,23 @@ class SandboxedGateTests(unittest.TestCase):
         finally:
             busy.close()
 
+    def test_launch_uses_free_port_when_default_busy(self):  # regression: enhance builds had "no port configured"
+        w = tmp()
+        busy = __import__("socket").socket()
+        busy.bind(("127.0.0.1", 0))
+        busy.listen(1)
+        bport = busy.getsockname()[1]
+        try:
+            (w / "app").mkdir()
+            (w / "app" / "config.py").write_text(f'import os\nPORT = int(os.environ.get("MYAPP_PORT", "{bport}"))\n')
+            (w / "run.sh").write_text('#!/bin/sh\nexec python3 -m http.server "$MYAPP_PORT" --bind 127.0.0.1\n')
+            self.assertEqual(gates.detect_port(w), ("MYAPP_PORT", bport))
+            g = gates.g_launch(w, None, "Web app (browser UI + local server)")
+            self.assertEqual(g["status"], gates.VERIFIED, g["detail"])
+            self.assertIn("MYAPP_PORT", g["detail"])
+        finally:
+            busy.close()
+
     def test_launch_app_that_never_answers(self):
         w = tmp()
         (w / "run.sh").write_text("#!/bin/sh\nexit 1\n")
@@ -120,6 +137,17 @@ class SandboxedGateTests(unittest.TestCase):
         self.assertEqual(status, "succeeded", reasons)
         md = gates.report_markdown({"id": "j1", "status": status}, gs)
         self.assertIn("| Test suite passes (re-run independently) | yes | VERIFIED |", md)
+
+
+class PortDetectionTests(unittest.TestCase):
+    def test_patterns(self):
+        for text, want in (('PORT = int(os.getenv("APP_PORT", 8123))', ("APP_PORT", 8123)),
+                           ('exec node server.js --port ${WEB_PORT:-3001}', ("WEB_PORT", 3001)),
+                           ('const port = process.env.API_PORT || 4000;', ("API_PORT", 4000)),
+                           ('nothing here', (None, None))):
+            w = tmp()
+            (w / "run.sh").write_text(text)
+            self.assertEqual(gates.detect_port(w), want, text)
 
 
 class OsvTests(unittest.TestCase):
