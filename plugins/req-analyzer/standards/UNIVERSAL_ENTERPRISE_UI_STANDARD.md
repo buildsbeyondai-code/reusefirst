@@ -1,7 +1,7 @@
 # Universal Enterprise UI Standard (UEUIS)
 
-**Version:** 1.8  
-**Updated:** 5 November 2026  
+**Version:** 1.9  
+**Updated:** 6 November 2026  
 **Status:** Project-defined UI engineering playbook, **derived from and mapped to** international standards (ISO 9241 series, ISO/IEC 25010, ISO/IEC 40500 / W3C WCAG, ISO/IEC 30071-1, ISO 24495-1, EN 301 549). It is **not itself** an ISO standard. Claim conformance against the cited standards, never against this document alone.  
 **Companion to:** `UNIVERSAL_AI_SOFTWARE_ENGINEERING_STANDARD.md` (UAISES). UAISES §10 says *what* good UI needs. This document says *how much*, *how to prove it*, and *which standard requires it*.  
 **Purpose:** A reusable, framework-agnostic standard for Claude Code and other coding agents to design, build, audit and release enterprise-grade user interfaces (web, desktop, mobile, embedded web views) that pass accessibility audits, procurement reviews and usability evaluation.
@@ -419,6 +419,30 @@ Explanatory text helps first-time users and slows down experienced ones. Give us
 - **Hide what the current page does not use** (e.g. the requirement editor on the History page).
 - **Verification:** a browser test checks that the primary input is above the fold at 1366 × 768, that history is a separate tab or page, and counts the controls on the start screen against the button budget (§8.15).
 
+### 8.20 Organised screens: fill the space, no dead areas, no inner scroll bars (MUST at Enterprise)
+
+Learned from the CalmPC review (6 Nov 2026): a UI that was accessible and themed still looked "not at all good" because columns ended at different heights, cards sat half empty, an accordion grid went ragged, and panels scrolled inside the page.
+
+- **One screen per page on a laptop.** At 1366 × 768 and 1536 × 864 a dashboard page is exactly the viewport tall: header + tabs + content + footer. The page itself does not scroll; the content grid's middle row takes the free height (`grid-template-rows: auto minmax(0, 1fr) <fixed>`, page height `calc(100vh - chrome - footer)`).
+- **Rows, not ragged columns.** Lay a dashboard out in horizontal bands (status band → work area → wide chart), not two independent columns that end at different heights. Panels side by side in one band are the same height (`align-items: stretch`), with their action bars pinned to the bottom.
+- **Short facts go in one band.** A score, its verdict and 3–4 KPI tiles share one row; do not give each a half-empty card. Fold small status cards (e.g. "Autopilot on") into a KPI tile.
+- **No vertical scroll bars inside the page.** Long lists **page to fit** the space they have ("1–10 of 51 ‹ ›" in the card header), recomputed on resize. Never `overflow: auto` on panels.
+- **Master–detail, not accordions in a grid.** A list of tools/items on the left, the selected item's details and actions on the right. Accordions inside a paged or multi-column list move rows when opened and leave gaps.
+- **Intentional end of list.** When a list has fewer items than the space, a quiet centred end marker ("That's everything…") or an empty state fills the remainder, so the space reads as deliberate, not broken.
+- **Wide charts are short; narrow cards are not tall.** A trend chart spans the full width at 140–180 px. A chart's SVG is drawn at its real pixel size (never `preserveAspectRatio="none"` with text inside, which stretches the labels).
+- **Grid children shrink.** Every single-column page grid uses `grid-template-columns: minmax(0, 1fr)`; otherwise long content forces horizontal scroll on phones.
+- **Verification (browser test, both themes, 1366 × 768 and 1536 × 864, every page):** page `scrollHeight` ≤ viewport; no element with `overflow:auto|scroll` whose content overflows; side-by-side panels within 2 px of equal height; in every full-height card, the largest empty vertical band between visible leaf elements is ≤ 45 % of the card height; at 375–390 px wide, `scrollWidth` ≤ viewport. **Prove the check can fail** (remove the end marker and see it fail) before trusting it.
+
+### 8.21 Honest actions (MUST)
+
+Learned from the same review: "many tools not working" came from buttons that were offered but could not succeed.
+
+- **Offer an action only when it can do something now.** Hide or disable it when the back end would refuse or no-op (an admin-only clean-up for an unprivileged service; a restore point inside the platform's once-a-day window; an update while another update runs). Say why in one line.
+- **Report what actually happened:** Done / Partly done / Not done, with the per-item reason in plain words ("some files are in use and were left"). A partial success is never shown as "Done".
+- **A refusal is a result, not a crash.** A back end's 4xx refusal (busy, not allowed) reaches the user as a "Not done" message with the reason, not a 502 or a console error.
+- **Re-check before acting.** The server re-validates every action against the back end's current list (allowlist) and refuses stale ones with "the list has been refreshed".
+- **Verification:** a live end-to-end walkthrough (opt-in, against the real system) selects every tool, presses every action and fails on "Not done", empty results or console errors; destructive actions are behind an extra flag.
+
 ## 9. Responsive and Multi-Device Layout
 
 - Design for content breakpoints, not device names. Verify at least: 320, 375, 768, 1024, 1440 and 1920+ CSS px, and at 200% and 400% zoom.
@@ -596,6 +620,8 @@ project/
 | Accessibility | Automated scan clean + keyboard + screen reader + zoom/reflow passes | Any WCAG A failure (Core) or AA failure (Enterprise) on a primary journey |
 | Theming | Contrast and visual review per theme | Any theme fails contrast, or one theme is visibly unfinished |
 | Palette and restraint | §8.16 named palette per theme; §8.17 restraint test (no decorative gradients, gradient text, glass or coloured shadows) | Decorative gradients or glows, gradient text, several filled buttons, the same palette in both themes, or status colours reused as decoration |
+| Organised screens | §8.20 browser test (one screen per page, no inner scroll bars, equal panels, empty band ≤ 45 %, no phone side-scroll), proven able to fail | A page scrolls on a laptop, a panel scrolls inside the page, columns end at different heights, or a card is mostly empty with no end marker |
+| Honest actions | §8.21 live walkthrough of every action | A button that cannot succeed is offered, a partial result shows "Done", or a refusal surfaces as an error page |
 | Focus and descriptions | §8.18 switch persists and hides only explanatory text; §8.19 primary input above the fold, history on its own page | Data or errors hidden by the switch, a cramped primary input, optional inputs nobody uses, or secondary records stacked under the task |
 | Restraint and density | §8.15 button budget; §9.1 screenshots at 1366 × 768 and 1536 × 864 | More than one primary action per view, duplicate actions, or the primary input/action not visible above the fold on a laptop |
 | Professional polish | §8.14 top-20 checklist; screenshots per theme at desktop and phone width | Themes indistinguishable in the header, no first-run state, buttons with no busy state, unlabelled mobile tables, or nested interactive elements |
