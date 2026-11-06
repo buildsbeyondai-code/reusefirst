@@ -23,6 +23,13 @@ LICENCE = {"allowed": 0.0, "review": 1.5, "learn-only": None}  # None = code can
 MAINT = {"active": 0.0, "unknown": 1.0, "stale": 1.0, "unmaintained": 2.5, "archived": 3.0}
 
 
+def capabilities(n_concepts: int) -> float:
+    """Approximate capability count: the first 8 key concepts count fully, later ones a third each (long requirements
+    repeat and elaborate). Capped at 25. 2.0.0 counted every concept, which inflated long requirements (59 concepts)."""
+    n = max(1, n_concepts)
+    return round(min(25.0, min(n, 8) + max(0, n - 8) / 3), 1)
+
+
 def reuse_cost(c: dict, n_caps: int) -> dict | None:
     lic = LICENCE.get((c.get("licence") or {}).get("reuse", "review"), 1.5)
     if lic is None:
@@ -41,7 +48,7 @@ def reuse_cost(c: dict, n_caps: int) -> dict | None:
 
 
 def decide(result: dict) -> dict:
-    caps = max(1, len(result.get("concepts") or []))
+    caps = capabilities(len(result.get("concepts") or []))
     build = {"low": round(1.0 * caps + 2, 1), "high": round(2.0 * caps + 4, 1)}
     build["mid"] = round((build["low"] + build["high"]) / 2, 1)
     cands = [c for c in (result.get("github") or []) + (result.get("claude_plugins") or []) + (result.get("packages") or [])
@@ -81,6 +88,7 @@ def decide(result: dict) -> dict:
         "confidence": "low" if not best or best["confidence"] < 50 else "medium" if best["confidence"] < 70 else "medium-high",
         "assumptions": [
             "1 unit = building and testing one requirement capability from scratch",
+            "capabilities ≈ the first 8 key concepts plus a third of the rest (at most 25)",
             "adapting an existing codebase: 0.2-0.4 units per requirement capability",
             "integration cost: 1 when the language matches, 2 when unknown, 4 when incompatible",
             "licence overhead: 0 permissive, 1.5 needs review; no-licence code cannot be copied",

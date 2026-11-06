@@ -37,6 +37,33 @@ PUBLIC_API = {"/api/health", "/api/session"}
 _inflight = threading.BoundedSemaphore(MAX_INFLIGHT)
 
 
+ALLOWED_UIDS = {os.getuid(), 0}  # this user, and root (WSL's localhost relay for Windows browsers runs as root)
+
+
+def peer_uid(client: tuple) -> int | None:
+    """Owner uid of the connecting loopback socket (Linux /proc/net/tcp*), or None when it cannot be determined."""
+    import socket as _s
+    ip, port = client[0], client[1]
+    try:
+        v4 = _s.inet_aton(ip.removeprefix("::ffff:"))
+    except OSError:
+        v4 = None
+    keys = set()
+    if v4:
+        keys.add(f"{int.from_bytes(v4, 'little'):08X}:{port:04X}")
+        keys.add(f"0000000000000000FFFF0000{int.from_bytes(v4, 'little'):08X}:{port:04X}")
+    for f in ("/proc/net/tcp", "/proc/net/tcp6"):
+        try:
+            lines = Path(f).read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for ln in lines:
+            p = ln.split()
+            if len(p) > 7 and p[1].upper() in keys:
+                return int(p[7])
+    return None
+
+
 def token_file() -> Path:
     return builder.STATE_DIR / "session.token"
 
@@ -117,6 +144,9 @@ class Handler(BaseHTTPRequestHandler):
         """Common checks; returns an error tuple or None."""
         if not self._host_ok():
             return 403, "Host must be 127.0.0.1 or localhost"
+        if path.startswith("/api/") and path != "/api/health" and peer_uid(self.client_address) not in ALLOWED_UIDS:
+            obs.METRICS.inc("auth_denied_other_user")
+            return 403, "requests from other local user accounts are refused"
         if not self._origin_ok():
             return 403, "cross-origin request refused"
         if path.startswith("/api/") and path not in PUBLIC_API and not self._token_ok():

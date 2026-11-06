@@ -251,6 +251,12 @@ class DecisionTests(unittest.TestCase):
                       recommendation="extend")
         self.assertEqual(decision.decide({"concepts": list("abcdefghijkl"), "github": [c]})["recommendation"], "build new")
 
+    def test_capability_estimate_diminishes(self):
+        self.assertEqual(decision.capabilities(0), 1)
+        self.assertEqual(decision.capabilities(6), 6)
+        self.assertEqual(decision.capabilities(59), 25.0 if 8 + 51 / 3 > 25 else round(8 + 51 / 3, 1))
+        self.assertLess(decision.decide({"concepts": list(range(51))})["build_new"]["high"], 2 * 25 + 4 + 0.01)
+
     def test_report_and_outcomes(self):
         md = decision.report_markdown({"created_at": time.time(), "result": {"requirement": "x", "concepts": ["a"],
                                                                                "github": [self.cand()]}})

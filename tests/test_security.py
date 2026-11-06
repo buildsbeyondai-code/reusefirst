@@ -154,3 +154,25 @@ class HttpParsingTests(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LocalUserTests(Base):
+    def test_peer_uid_is_this_user(self):
+        import os
+        import socket
+        c = socket.create_connection(("127.0.0.1", self.port))
+        try:
+            self.assertEqual(server.peer_uid(c.getsockname()), os.getuid())
+        finally:
+            c.close()
+        self.assertIsNone(server.peer_uid(("127.0.0.1", 1)))
+
+    def test_other_local_user_refused(self):
+        old = server.ALLOWED_UIDS
+        server.ALLOWED_UIDS = {-1}  # simulate a request from another OS account
+        try:
+            self.assertEqual(self.req("GET", "/api/session", token=False)[0], 403)
+            self.assertEqual(self.req("GET", "/api/builds")[0], 403)  # even with a valid token
+            self.assertEqual(self.req("GET", "/api/health", token=False)[0], 200)  # health stays public
+        finally:
+            server.ALLOWED_UIDS = old
