@@ -1,19 +1,19 @@
 {
-  "name": "requirement-reuse-analyser",
+  "name": "reusefirst",
   "owner": {
     "name": "buildsbeyondai-code"
   },
   "metadata": {
-    "description": "Requirement Reuse Analyser: find the closest existing Claude plugins and GitHub projects for a requirement, then build or enhance apps with Claude Code to your engineering and UI standards."
+    "description": "ReuseFirst (Reuse-First Builder): find the closest existing Claude plugins and GitHub projects for a requirement, then build or enhance apps with Claude Code to your engineering and UI standards."
   },
   "plugins": [
     {
-      "name": "requirement-reuse-analyser",
+      "name": "reusefirst",
       "source": "./plugins/req-analyzer",
-      "description": "Analyse a requirement against existing Claude plugins and GitHub open-source projects (% closeness, reuse verdict), then build a new app or enhance an existing one with Claude Code, following bundled engineering (UAISES) and UI (UEUIS) standards. Web UI at http://127.0.0.1:5057/.",
-      "version": "1.12.1",
+      "description": "ReuseFirst (Reuse-First Builder): analyse a requirement against existing Claude plugins and GitHub open-source projects (% closeness, reuse verdict), then build a new app or enhance an existing one with Claude Code, following bundled engineering (UAISES) and UI (UEUIS) standards. Web UI at http://127.0.0.1:5057/.",
+      "version": "1.12.2",
       "category": "productivity",
-      "homepage": "https://github.com/buildsbeyondai-code/requirement-reuse-analyser"
+      "homepage": "https://github.com/buildsbeyondai-code/reusefirst"
     }
   ]
 }

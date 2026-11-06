@@ -225,7 +225,7 @@ function render(r) {
   nb.addEventListener("click", () => { selectTab("build"); $("#tab-build").focus(); });
   va.append(nb); vd.append(va);
   document.documentElement.classList.add("has-results");   // the requirement box gives the results the room
-  document.title = `${b.word}: ${r.best ? r.best.closeness + "% " + r.best.name : "no match"} · Requirement Reuse Analyser`;
+  document.title = `${b.word}: ${r.best ? r.best.closeness + "% " + r.best.name : "no match"} · Reuse-First Builder`;
   const bp = r.best ? r.best.closeness : 0;
   const bestBand = { "p-hi": "success", "p-info": "info", "p-mid": "warning", "p-lo": "neutral" }[scoreBand(bp)];
   const bestTile = tile("Best match", r.best ? bp + "%" : "—", r.best ? r.best.name : "No match shares a key concept", bestBand, "star");
@@ -296,7 +296,7 @@ $("#f").addEventListener("submit", async (ev) => {
   if (!requirement) { status.className = "err"; status.textContent = "Enter a requirement first."; markReq(true); $("#req").focus(); return; }
   markReq(false);
   setBusy($("#go"), true, "Analyzing…");
-  document.title = "Analyzing… · Requirement Reuse Analyser";
+  document.title = "Analyzing… · Reuse-First Builder";
   status.textContent = $("#gh").checked ? "Analyzing… (searching GitHub, up to ~20 s)" : "Analyzing…";
   skeleton();
   try {
@@ -380,7 +380,7 @@ async function loadStatus() {
     sum.addEventListener("click", () => { STATUS_OPEN = list.hidden; list.hidden = !STATUS_OPEN; sum.setAttribute("aria-expanded", String(STATUS_OPEN)); });
     list.append(el("span", { class: "fresh", id: "fresh" }, "checked just now"));
     bar.replaceChildren(sum, ...bad.map(([t, c, ic]) => pill(t, c, ic)), list);
-    $("#foot-meta").firstChild.textContent = `Requirement Reuse Analyser v${h.version} · up ${Math.floor(h.uptime_s / 60)} min`;
+    $("#foot-meta").firstChild.textContent = `Reuse-First Builder v${h.version} · up ${Math.floor(h.uptime_s / 60)} min`;
   } catch (e) {
     bar.replaceChildren(st("Server unreachable: " + e.message + ". Retrying every 30 s.", false));
   }

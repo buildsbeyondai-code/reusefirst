@@ -203,7 +203,7 @@ def make_server(port: int = DEFAULT_PORT) -> ThreadingHTTPServer:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description="Requirement reuse analyser web UI")
+    ap = argparse.ArgumentParser(description="Reuse-First Builder (ReuseFirst) web UI")
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

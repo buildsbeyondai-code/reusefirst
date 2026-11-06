@@ -44,7 +44,7 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(st, 200)
             self.assertTrue(h["Content-Type"].startswith(ctype))
             self.assertIn("frame-ancestors 'none'", h["Content-Security-Policy"])
-        self.assertIn(b"Requirement Reuse Analyser", self.req("GET", "/")[2])
+        self.assertIn(b"Reuse-First Builder", self.req("GET", "/")[2])
 
     def test_health(self):
         st, _, b = self.req("GET", "/api/health")
