@@ -27,7 +27,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Sandbox runtime (bubblewrap; Ubuntu 24.04 restricts unprivileged user namespaces via AppArmor)
         run: |
-          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap socat
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
       - name: Dev tools (pinned)
         run: python -m pip install -r tools/requirements-dev.lock
@@ -84,7 +84,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: |
-          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap
+          sudo apt-get update -q && sudo apt-get install -y -q bubblewrap socat
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
       - name: Controlled-fault check of high-risk controls
         run: python tools/mutate.py

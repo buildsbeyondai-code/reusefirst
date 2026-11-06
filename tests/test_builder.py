@@ -277,6 +277,11 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(a[a.index("--max-budget-usd") + 1], "3.00")
         self.assertNotIn("--model", a)
         self.assertIn(f"Bash({out}/.venv/bin/*:*)", a)  # regression: absolute venv path was refused in a real build
+        st = json.loads(a[a.index("--settings") + 1])  # nested Bash sandbox: generated code cannot read the credential
+        self.assertTrue(st["sandbox"]["enabled"] and st["sandbox"]["failIfUnavailable"])
+        self.assertFalse(st["sandbox"]["allowUnsandboxedCommands"])
+        self.assertIn("~/.claude/.credentials.json", st["sandbox"]["filesystem"]["denyRead"])
+        self.assertIn("Read(~/.claude/.credentials.json)", st["permissions"]["deny"])
         # persisted
         self.assertEqual(json.loads((self.mgr.dir / j["id"] / "job.json").read_text())["status"], "succeeded")
         self.assertTrue((self.mgr.dir / j["id"] / "stream.jsonl").stat().st_size > 0)
@@ -286,6 +291,28 @@ class LifecycleTests(unittest.TestCase):
         n = j["event_count"]
         self.assertEqual(self.mgr.get(j["id"], n)["events"], [])
         self.assertEqual(len(self.mgr.get(j["id"], n - 1)["events"]), 1)
+
+    def test_symlinked_claude_binary(self):  # regression: real build failed with exit 127 (symlink not mounted)
+        link = helpers.TMP / "bin" / "claude"
+        link.parent.mkdir(exist_ok=True)
+        link.unlink(missing_ok=True)
+        link.symlink_to(os.environ["REQAN_CLAUDE_BIN"])
+        old = os.environ["REQAN_CLAUDE_BIN"]
+        os.environ["REQAN_CLAUDE_BIN"] = str(link)
+        try:
+            j = wait(self.mgr, self.mgr.start("r", answers("symlink1", reuse=[]))["id"])
+        finally:
+            os.environ["REQAN_CLAUDE_BIN"] = old
+        self.assertEqual(j["status"], "succeeded", j.get("reasons"))
+
+    def test_socat_missing_blocks_builds(self):
+        orig = builder.sandbox.shutil.which
+        builder.sandbox.shutil.which = lambda n, *a, **k: None if n == "socat" else orig(n, *a, **k)
+        try:
+            with self.assertRaisesRegex(builder.BuildError, "socat"):
+                self.mgr.start("r", answers("nosocat"))
+        finally:
+            builder.sandbox.shutil.which = orig
 
     def test_agent_success_is_not_self_certified(self):  # regression A10
         for mode, gate in (("badtests", "tests"), ("secret", "secrets")):

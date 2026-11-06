@@ -482,4 +482,6 @@ def require() -> dict:
     st = self_test()
     if not st["ok"]:
         raise SandboxUnavailable(st["error"] or "sandbox self-test failed")
+    if not shutil.which("socat"):
+        raise SandboxUnavailable("socat is not installed: the agent's nested Bash sandbox needs it (sudo apt install socat)")
     return st

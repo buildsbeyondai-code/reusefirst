@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.2 — 2026-11-06
+- **Fixed (found by the first real build):** Claude was launched through the `~/.local/bin/claude` symlink, which
+  is not mounted in the sandbox, so the build exited 127. ReuseFirst now launches the real binary path, with a
+  regression test.
+- **The credential is no longer readable by generated code.** Every Bash command the agent runs (tests, scripts,
+  installs) now runs in Claude Code's own nested sandbox, set through the documented `--settings`:
+  - `sandbox.enabled` with `failIfUnavailable` and no unsandboxed retry;
+  - `credentials.files` / `filesystem.denyRead` cover `~/.claude/.credentials.json` and `~/.claude.json`;
+  - network is limited to the package registries;
+  - `Read(...)` deny rules block the credential, and `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` is set.
+
+  Verified with a decoy secret: a sandboxed `open()` raises PermissionError. Builds are blocked if `socat` (needed
+  by that sandbox) is missing.
+
 ## 2.0.1 — 2026-11-06
 Found by the first real enhancement of a Playwright-based app (the job finder):
 - **Skipped tests no longer count as passed.** The test gate reports `skipped`, and a new advisory gate,

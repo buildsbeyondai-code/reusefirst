@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import sys
 import threading
 import time
@@ -194,7 +195,9 @@ class Handler(BaseHTTPRequestHandler):
             sb = sandbox.self_test()
             return self._json(200, {"ok": True, "version": __version__, "uptime_s": round(time.time() - STARTED),
                                     "catalog_size": len(cat["plugins"]), "catalog_errors": len(cat["errors"]),
-                                    "sandbox_ok": sb["ok"], "sandbox_error": sb.get("error"),
+                                    "sandbox_ok": sb["ok"] and bool(shutil.which("socat")),
+                                    "sandbox_error": sb.get("error") or (None if shutil.which("socat") else
+                                                                         "socat missing: sudo apt install socat"),
                                     "resource_control": sb.get("resource_control"),
                                     # UEUIS §8.11 status strip: what this tool can do right now
                                     "claude_cli": bool(builder.claude_bin()),
