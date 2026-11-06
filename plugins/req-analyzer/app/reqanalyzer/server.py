@@ -244,7 +244,7 @@ class Handler(BaseHTTPRequestHandler):
         bad = self._guard(path)
         if bad:
             return self._json(bad[0], {"error": bad[1]})
-        m = re.fullmatch(r"/api/builds/([\w-]{1,64})/(cancel|launch|stop)", path)
+        m = re.fullmatch(r"/api/builds/([\w-]{1,64})/(cancel|launch|stop|resume)", path)
         d = re.fullmatch(r"/api/analyses/([\w-]{1,64})/delete", path)
         if path not in ("/api/analyze", "/api/reload", "/api/inputs", "/api/build") and not m and not d:
             return self._json(404, {"error": "not found"})
@@ -273,6 +273,11 @@ class Handler(BaseHTTPRequestHandler):
                 if m and m.group(2) == "cancel":
                     ok = builds().cancel(m.group(1))
                     return self._json(200 if ok else 409, {"cancelled": ok})
+                if m and m.group(2) == "resume":
+                    lb = body.get("labels") if isinstance(body.get("labels"), dict) else None
+                    job = builds().resume(m.group(1), self.headers.get("Idempotency-Key"), body.get("requirement"),
+                                          body.get("answers") if isinstance(body.get("answers"), dict) else None, lb)
+                    return self._json(202, job)
                 if m and m.group(2) == "stop":
                     ok = builds().stop(m.group(1))
                     return self._json(200 if ok else 409, {"stopped": ok})

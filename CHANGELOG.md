@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.0 — 2026-11-06
+- **Resume:** a failed, timed-out, interrupted or cancelled build continues from the work it already did
+  (`POST /api/builds/<id>/resume`, plus a **Resume build** button).
+  - Enhancements copy the earlier attempt's staging folder and keep the original app's baseline tests.
+  - New apps continue in the same folder.
+  - The agent is told to inspect and finish, not start over.
+- **Truthful failure reasons:** a usage-limit stop now reads "Claude usage limit reached (5-hour limit, resets …)",
+  not "success" (found in a real build). Spending cap, turn limit and missing-result cases are distinguished.
+- **Optional semantic review ("Deep check with Claude"):** a sandboxed, tool-less review of the top 8 candidates
+  (see docs/DISCOVERY_ENGINE.md).
+- **Same-user API check** (peer uid from /proc/net/tcp; other local accounts are refused).
+- **Inputs prefill runs in the sandbox.** Stop words were added for long requirements, and capability estimates
+  diminish for long requirements.
+
 ## 2.0.2 — 2026-11-06
 - **Fixed (found by the first real build):** Claude was launched through the `~/.local/bin/claude` symlink, which
   is not mounted in the sandbox, so the build exited 127. ReuseFirst now launches the real binary path, with a

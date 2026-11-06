@@ -630,7 +630,7 @@ function dur(a, b) { if (!a) return "—"; const s = Math.round((b || Date.now()
 
 function watch(id) {
   JOB = id; SEEN = 0; $("#events").replaceChildren(); $("#job").hidden = false;
-  $("#report-wrap").hidden = true; $("#launch").hidden = true; $("#stop-app").hidden = true; $("#launch-out").textContent = "";
+  $("#report-wrap").hidden = true; $("#launch").hidden = true; $("#stop-app").hidden = true; $("#resume").hidden = true; $("#launch-out").textContent = "";
   $("#gates-wrap").hidden = true;
   clearInterval(POLL); poll(); POLL = setInterval(poll, 2000);
   reveal($("#job"));
@@ -671,6 +671,7 @@ async function poll() {
     else if (j.result) { $("#report").textContent = j.result; $("#report-wrap").hidden = false; }
     $("#launch").hidden = !(j.status === "succeeded" && j.has_run_sh) || !!j.app_running;
     $("#stop-app").hidden = !j.app_running;
+    $("#resume").hidden = !["failed", "timed_out", "interrupted", "cancelled"].includes(j.status) || !j.spec;
     loadBuilds();
   }
 }
@@ -689,6 +690,15 @@ $("#launch").addEventListener("click", async () => {
     $("#launch-out").replaceChildren(`Started in the sandbox (${r.health}). `, u ? extLink(u, u) : "");
     $("#launch").hidden = true; $("#stop-app").hidden = false;
   } catch (e) { $("#launch-out").textContent = "Launch failed: " + e.message; }
+});
+$("#resume").addEventListener("click", async () => {
+  const st = $("#bstatus"); st.className = "";
+  setBusy($("#resume"), true, "Resuming…");
+  try {
+    const job = await api(`/api/builds/${encodeURIComponent(JOB)}/resume`, { method: "POST", headers: { "Idempotency-Key": "resume-" + JOB }, body: "{}" });
+    toast("Build resumed from the earlier attempt's work", "build"); watch(job.id);
+  } catch (e) { st.className = "err"; st.textContent = "Could not resume: " + e.message; }
+  finally { setBusy($("#resume"), false); }
 });
 $("#stop-app").addEventListener("click", async () => {
   try {

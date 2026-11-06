@@ -491,7 +491,7 @@ def required_inputs(requirement: str, analysis: dict | None = None, target: str 
 
 
 # ------------------------------------------------------------------- build
-def validate_spec(requirement: str, answers: dict) -> dict:
+def validate_spec(requirement: str, answers: dict, resuming: bool = False) -> dict:
     if not isinstance(requirement, str) or not requirement.strip() or len(requirement) > 5000:
         raise BuildError("requirement must be 1-5000 characters")
     if not isinstance(answers, dict) or len(answers) > 60:
@@ -521,7 +521,7 @@ def validate_spec(requirement: str, answers: dict) -> dict:
         raise BuildError("unknown build mode")
     if clean.get("build_mode") == ENHANCE:
         out = enhance_target(str(out))  # must be an existing app, never an arbitrary folder
-    elif out.exists() and (not out.is_dir() or any(out.iterdir())):
+    elif out.exists() and (not out.is_dir() or (any(out.iterdir()) and not resuming)):
         raise BuildError(f"output folder {out} already exists and is not empty")
     clean["output_dir"] = str(out)
     clean["budget_usd"] = number(clean.get("budget_usd", 5), "budget_usd", 0.5, 50.0)
@@ -642,6 +642,34 @@ Write docs/UI_STATES.md (state inventory per screen) and docs/ACCESSIBILITY.md (
 tested, known issues). The completion report must include the UEUIS §20 UI gate table."""
 
 
+def classify_failure(final: dict | None, code: int | None) -> str:
+    """A truthful reason for an unsuccessful agent run (2.0.2 reported "success" when Claude hit a usage limit)."""
+    text = str((final or {}).get("result") or "")
+    sub = str((final or {}).get("subtype") or "")
+    m = re.search(r"hit your ([\w -]+?) limit[^\n]*?(resets [^\n.]+)?$", text, re.I | re.M)
+    if m:
+        return f"Claude usage limit reached ({m.group(1)} limit{', ' + m.group(2) if m.group(2) else ''})"
+    if "budget" in sub or "budget" in text.lower():
+        return f"spending cap reached ({sub or 'max budget'})"
+    if "max_turns" in sub:
+        return "Claude stopped at its turn limit"
+    if final is None:
+        return f"Claude Code exited with code {code} without a result"
+    if sub and sub != "success":
+        return f"Claude Code reported {sub}"
+    return f"Claude Code exited with code {code}"
+
+
+def resume_note(a: dict) -> str:
+    r = a.get("_resume")
+    if not r:
+        return ""
+    return f"""
+RESUMING: an earlier attempt (build {r['id']}) stopped before finishing ({r.get('error') or 'unknown reason'}). This folder
+already holds its work. Do NOT start over: first inspect what exists (git status/diff if any, new files, the test suite,
+docs/), run the tests, then finish the remaining work and the report."""
+
+
 def build_prompt(a: dict) -> str:
     reuse_line = reuse_instructions(a.get("_provenance") or [])
     ui_line = ui_instructions(a)
@@ -655,6 +683,7 @@ traceability, §4 no-fake-data rule, §6 testing, §7 security, §17 workflow ph
 {ui_line}
 {reuse_line}
 {TRUST_BOUNDARY}
+{resume_note(a)}
 
 Deliver, in this folder only:
 1. Working source code implementing every must-have feature, with real behaviour (no fake data or dead buttons).
@@ -687,6 +716,7 @@ existing test suite and note the result; if tools/coverage.sh exists, run it too
 {ui_instructions(a)}
 {reuse_line}
 {TRUST_BOUNDARY}
+{resume_note(a)}
 
 Rules for an enhancement:
 - Extend the existing code and its conventions; do not rewrite or reorganise unrelated code. Existing features,
@@ -908,8 +938,28 @@ class BuildManager:
         with self.lock:
             return next((j for j in self.jobs.values() if L.is_active(j["status"])), None)
 
+    def resume(self, job_id: str, idem_key: str | None = None, requirement: str | None = None,
+               answers: dict | None = None, labels: dict | None = None) -> dict:
+        """Continue a build that stopped before finishing (usage limit, crash, timeout, cancel), from the work it did."""
+        with self.lock:
+            prev = self.jobs.get(job_id)
+        if not prev or prev["status"] not in (L.FAILED, L.TIMED_OUT, L.INTERRUPTED, L.CANCELLED):
+            raise BuildError("only a failed, timed-out, interrupted or cancelled build can be resumed")
+        spec = prev.get("spec") or {}
+        requirement = requirement or spec.get("requirement")
+        answers = answers or spec.get("answers")
+        if not requirement or not isinstance(answers, dict):
+            raise BuildError("this build has no stored inputs; send requirement and answers to resume it")
+        if prev["mode"] == "enhance":
+            if not prev.get("staging_dir") or not Path(prev["staging_dir"]).is_dir():
+                raise BuildError("the earlier attempt's staging copy is gone; start a new build instead")
+        elif str(answers.get("output_dir", "")).strip() and \
+                str(Path(os.path.expanduser(str(answers["output_dir"]).strip())).resolve()) != prev["output_dir"]:
+            raise BuildError("a resumed build must use the same folder")
+        return self.start(requirement, answers, labels or spec.get("labels"), idem_key, prev.get("analysis_id"), resume_from=prev)
+
     def start(self, requirement: str, answers: dict, labels: dict | None = None, idem_key: str | None = None,
-              analysis_id: str | None = None) -> dict:
+              analysis_id: str | None = None, resume_from: dict | None = None) -> dict:
         if idem_key is not None and not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", str(idem_key)):
             raise BuildError("bad Idempotency-Key")
         now = time.time()
@@ -920,7 +970,9 @@ class BuildManager:
         exe = claude_bin()
         if not exe:
             raise BuildError("Claude Code CLI not found (install it or set REQAN_CLAUDE_BIN)")
-        a = validate_spec(requirement, answers)
+        a = validate_spec(requirement, answers, resuming=bool(resume_from))
+        if resume_from:
+            a["_resume"] = {k: resume_from.get(k) for k in ("id", "error", "staging_dir", "baseline_tests", "provenance")}
         standard = uaises_text()  # mandatory: every build follows UAISES
         ui_standard = ui_standard_text()  # and every UI follows UEUIS
         try:
@@ -947,6 +999,9 @@ class BuildManager:
             if idem_key:
                 self.idem = {k: v for k, v in self.idem.items() if now - v[0] < IDEMPOTENCY_TTL_S}
                 self.idem[idem_key] = (now, job["id"])
+        job["spec"] = {"requirement": requirement, "answers": answers, "labels": labels or {}}  # for resume
+        if resume_from:
+            job["resume_from"] = resume_from["id"]
         self._save(job)
         METRICS.inc("builds_started")
         threading.Thread(target=self._worker, args=(job, a, requirement, labels or {}, standard, ui_standard, exe),
@@ -1018,8 +1073,10 @@ class BuildManager:
             staging = APPS_DIR / STAGING_DIRNAME / f"{target.name}-{job['id']}"
             staging.parent.mkdir(parents=True, exist_ok=True)
             keep_out = carried(target)
-            shutil.copytree(target, staging, symlinks=True,
-                            ignore=lambda d, names: [n for n in names if Path(d) == target and n in keep_out])
+            res = a.get("_resume")
+            src = Path(res["staging_dir"]) if res else target  # resume: continue from the earlier attempt's work
+            shutil.copytree(src, staging, symlinks=True,
+                            ignore=lambda d, names: [n for n in names if Path(d) == src and n in keep_out])
             for n in keep_out:  # empty placeholders so code that expects data/ still runs
                 if (target / n).is_dir() and not (target / n).is_symlink():
                     (staging / n).mkdir(exist_ok=True)
@@ -1028,12 +1085,16 @@ class BuildManager:
                 self._event(job, "info", f"Kept out of the build (user data and secrets, carried over unchanged): {', '.join(keep_out)}")
             job["staging_dir"] = str(staging)
             work, inside = staging, target  # the staging copy is mounted AT the app's path inside the sandbox
-            self._event(job, "info", "Running the existing tests on the staging copy (baseline)")
-            baseline = gates.run_tests(work, inside=inside)
+            if res and (res.get("baseline_tests") or {}).get("status"):
+                baseline = dict(res["baseline_tests"])  # the baseline is the ORIGINAL app's, measured by the first attempt
+                self._event(job, "info", f"Resuming build {res['id']} from its staging copy; baseline from that attempt")
+            else:
+                self._event(job, "info", "Running the existing tests on the staging copy (baseline)")
+                baseline = gates.run_tests(work, inside=inside)
             job["baseline_tests"] = {k: baseline.get(k) for k in ("status", "passed", "failed", "command", "detail")}
         else:
             target.mkdir(parents=True, exist_ok=True)
-            if target.is_symlink() or str(target.resolve()) != a["output_dir"] or any(target.iterdir()):
+            if target.is_symlink() or str(target.resolve()) != a["output_dir"] or (any(target.iterdir()) and not a.get("_resume")):
                 raise BuildError("output folder changed after validation (symlink or new files); not building there")
             work = target
         if self._cancelled(job):
@@ -1042,7 +1103,10 @@ class BuildManager:
         (work / ("docs/ENHANCE_SPEC.md" if enhance else "BUILD_SPEC.md")).write_text(spec_markdown(requirement, a, labels))
         (work / "docs" / UAISES.name).write_text(standard, encoding="utf-8")
         (work / "docs" / UI_STANDARD.name).write_text(ui_standard, encoding="utf-8")
-        prov = reuse.prepare(work, a.get("reuse") or [], log=lambda m: self._event(job, "info", m)) if a.get("reuse") else []
+        if a.get("_resume") and a["_resume"].get("provenance") is not None:
+            prov = a["_resume"]["provenance"]  # clones are already in the copied work folder
+        else:
+            prov = reuse.prepare(work, a.get("reuse") or [], log=lambda m: self._event(job, "info", m)) if a.get("reuse") else []
         job["provenance"] = prov
         a["_provenance"] = prov
         if self._cancelled(job):
@@ -1058,11 +1122,8 @@ class BuildManager:
         if job.get("storage_exceeded"):
             return self._to(job, L.FAILED, f"project grew beyond {MAX_PROJECT_BYTES // 2**20} MB; stopped")
         if not (final and not final.get("is_error") and final.get("subtype") == "success" and code == 0):
-            err = (final or {}).get("subtype") or f"Claude Code exited with code {code}"
-            if final and "budget" in str(final.get("subtype", "")) + str(final.get("result", "")):
-                err = "spending cap reached: " + str(err)
             self._collect(job, work, enhance)
-            return self._to(job, L.FAILED, err)
+            return self._to(job, L.FAILED, classify_failure(final, code) + " — the work so far is kept; use Resume to continue")
 
         self._to(job, L.VERIFYING)
         gs, tres = gates.run_all(work, a, job, baseline, inside=inside)

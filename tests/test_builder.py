@@ -345,6 +345,30 @@ class LifecycleTests(unittest.TestCase):
         finally:
             builder.sandbox._self_test = old
 
+    def test_failure_reasons_are_truthful(self):  # regression: 2.0.2 reported "success" for a usage-limit stop
+        c = builder.classify_failure
+        self.assertEqual(c({"subtype": "success", "result": "You've hit your 5-hour limit · resets 11:10am (UTC)"}, 1),
+                         "Claude usage limit reached (5-hour limit, resets 11:10am (UTC))")
+        self.assertIn("spending cap", c({"subtype": "error_max_budget_usd"}, 1))
+        self.assertIn("turn limit", c({"subtype": "error_max_turns"}, 1))
+        self.assertIn("without a result", c(None, 3))
+        self.assertEqual(c({"subtype": "success", "result": "ok"}, 2), "Claude Code exited with code 2")
+
+    def test_resume_new_build(self):
+        os.environ["FAKE_CLAUDE_MODE"] = "crash"
+        j = wait(self.mgr, self.mgr.start("r", answers("resume-new", reuse=[]))["id"])
+        os.environ["FAKE_CLAUDE_MODE"] = "ok"
+        self.assertEqual(j["status"], "failed")
+        self.assertIn("use Resume", j["error"])
+        r = wait(self.mgr, self.mgr.resume(j["id"])["id"])
+        self.assertEqual((r["status"], r["resume_from"], r["output_dir"]), ("succeeded", j["id"], j["output_dir"]))
+        argv = json.loads(Path(os.environ["FAKE_CLAUDE_ARGV"]).read_text().splitlines()[-1])["argv"]
+        self.assertIn("RESUMING: an earlier attempt", argv[1])
+        with self.assertRaisesRegex(builder.BuildError, "only a failed"):
+            self.mgr.resume(r["id"])  # a succeeded build is not resumable
+        with self.assertRaisesRegex(builder.BuildError, "same folder"):
+            self.mgr.resume(j["id"], answers=answers("elsewhere"), requirement="r")
+
     def test_failure_and_budget(self):
         os.environ["FAKE_CLAUDE_MODE"] = "fail"
         j = wait(self.mgr, self.mgr.start("r", answers("fail1"))["id"])

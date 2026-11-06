@@ -189,6 +189,24 @@ class EnhanceTests(unittest.TestCase):
         self.assertFalse((self.app / "app.py").exists())
         self.assertEqual((self.app / "README.md").read_text(), "user changed this during the build")
 
+    def test_resume_enhancement_continues_from_staging(self):
+        os.environ["FAKE_CLAUDE_MODE"] = "fail"
+        try:
+            j = wait(self.mgr, self.mgr.start("x", enhance_answers(self.app), {})["id"])
+        finally:
+            os.environ["FAKE_CLAUDE_MODE"] = "ok"
+        self.assertEqual(j["status"], "failed")
+        self.assertFalse((self.app / "app.py").exists())  # nothing applied
+        (Path(j["staging_dir"]) / "first_attempt.txt").write_text("work from attempt 1")
+        r = wait(self.mgr, self.mgr.resume(j["id"])["id"])
+        self.assertEqual(r["status"], "succeeded", r.get("reasons"))
+        self.assertEqual((self.app / "first_attempt.txt").read_text(), "work from attempt 1")  # continued, not restarted
+        self.assertEqual(r["baseline_tests"]["passed"], j["baseline_tests"]["passed"])  # original app's baseline
+        self.assertEqual((self.app / "data" / "jobs.sqlite3").read_text(), "user data")
+        shutil.rmtree(r["staging_dir"], ignore_errors=True)
+        with self.assertRaisesRegex(builder.BuildError, "only a failed"):
+            self.mgr.resume("nope")
+
     def test_symlinked_app_rejected(self):  # regression A17
         link = APPS / "linked"
         link.unlink(missing_ok=True)
