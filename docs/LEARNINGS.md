@@ -14,7 +14,7 @@ Browser E2E (real catalog + real GitHub, needs the server running):
 | Saved analyses (history, retention, ids) | `app/reqanalyzer/history.py` |
 | Build inputs, allowlist, prompts, job lifecycle | `app/reqanalyzer/builder.py` |
 | Build tab UI | `static/app.js` (bottom half), `static/index.html` `#panel-build`. One shared `#req` textarea above the tabs feeds both tabs |
-| What Claude does with results | `commands/req-analyze.md`, `skills/requirement-analysis/SKILL.md` |
+| What Claude does with results | `skills/reusefirst/SKILL.md` (the only skill/command) |
 
 Timings (2026-11-02): cold analysis with GitHub ~10 s (5 queries, unauthenticated); cached repeat 0.04 s; catalog load 3,666 plugins <1 s.
 
@@ -53,3 +53,4 @@ Traps:
 - Standards lookup: env var, then `~/.config/req-analyzer/config.json` (`uaises`, `ui_standard`), then the copies bundled in `plugins/req-analyzer/standards/`. On the author's PC the config points at the live OneDrive files. Re-copy the bundled files before each release.
 - Never restart the 5057 server while a build is running: the build is marked interrupted.
 - The SessionStart hook runs from the installed plugin cache (~/.claude/plugins/cache/reusefirst/reusefirst/<version>), not from the working copy. After changing code, bump the version and run `claude plugin update reusefirst@reusefirst`, or the next session starts the old cached server. Until 1.12 the cache was still 1.0.0.
+- 1.13: one skill only (`skills/reusefirst`). A plugin with both a command and a skill shows as two entries in the `/` menu, which users read as two plugins.

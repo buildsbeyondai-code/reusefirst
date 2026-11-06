@@ -37,5 +37,5 @@ Build tab (`builder.py`, application layer):
 - Trust boundary: the build executes code as the user. Mitigations: localhost + Host check + JSON-only + session token, folder confinement
   (Claude Code edits limited to cwd), allowlist without rm/sudo/push/arbitrary curl, spending cap, time limit.
 
-Plugin: `.claude-plugin/plugin.json`, `commands/req-analyze.md`, `skills/requirement-analysis/SKILL.md`,
+Plugin: `.claude-plugin/plugin.json`, `skills/reusefirst/SKILL.md` (one skill: analyze, build, enhance, status),
 `hooks/hooks.json` → `hooks/ensure_server.py` (SessionStart; starts the server detached if 5057 is free).

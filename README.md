@@ -6,7 +6,7 @@ open-source repositories**, each with a **% closeness**, the concepts it does no
 (Reuse ≥70 · Fork/extend 50–69 · Borrow parts 30–49 · Build new <30).
 
 - Web UI: http://127.0.0.1:5057/ (SysPerf keeps 5056)
-- In Claude Code: `/req-analyze <requirement>` or just ask "does something like this already exist?" (skill `requirement-analysis`)
+- In Claude Code: `/reusefirst:reusefirst <requirement>` (or `status`), or just ask "does something like this already exist?". One skill covers analysis, builds, enhancements and build status.
 - CLI: `PYTHONPATH=plugins/req-analyzer/app python3 -m reqanalyzer.cli --markdown "your requirement"`
 
 ## Build tab (2 · Build app)

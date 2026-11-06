@@ -1,4 +1,4 @@
-# Project state — 2026-11-06 (v1.12.0)
+# Project state — 2026-11-06 (v1.13.0)
 
 Done:
 - v1.0: analyzer, Analyze tab, CLI, Claude plugin (command, skill, SessionStart hook), local marketplace; installed (user scope).
@@ -52,6 +52,10 @@ Done:
   enhancement prompt keeping existing tests and coverage gates). Standards bundled (plugins/req-analyzer/standards/) with
   env → ~/.config/req-analyzer/config.json → bundled lookup. Prepared for publishing as a public plugin marketplace
   (marketplace name req-analyzer, GitHub buildsbeyondai-code/req-analyzer). 106 unit tests + browser E2E pass.
+- v1.12.1–1.12.2: renamed to ReuseFirst (Reuse-First Builder); plugin/marketplace `reusefirst`, public repo
+  github.com/buildsbeyondai-code/reusefirst. 1.12.3: plugin README with full disclosure + LICENSE (directory-ready).
+- v1.13.0: the `/req-analyze` command and the `requirement-analysis` skill merged into ONE skill `reusefirst`
+  (analyze, build/enhance via the UI or API with user confirmation, status), so the plugin shows one entry.
 
 Open / next:
 - Optional always-on autostart (`tools/req-analyzer.service`) — needs user approval.

@@ -8,7 +8,7 @@ the Universal AI Software Engineering Standard (UAISES) for engineering, and the
 for the UI.
 
 ## Use
-- `/req-analyze <requirement>`, or ask "does something like this already exist?" (skill `requirement-analysis`).
+- `/reusefirst:reusefirst <requirement>` (or `status`), or just ask "does something like this already exist?". One skill (`reusefirst`) covers analysis, builds of new apps, enhancements of existing apps, and build status.
 - Web UI: http://127.0.0.1:5057/. It has an Analyze tab, a Build app tab (a new app or an existing one) and Past requirements.
 - Requires Python 3.11+ (standard library only). Builds need the Claude Code CLI.
 

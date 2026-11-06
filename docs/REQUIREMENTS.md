@@ -9,7 +9,7 @@ Users: the developer (single user, local machine) deciding build-vs-reuse. Platf
 | R3 | Must | When the best match is ≥70/50/30/<30, the verdict is Reuse/Fork/Borrow/Build new | test_textscore.test_verdict_bands |
 | R4 | Must | When GitHub is rate-limited, failing or unreachable, then the status and error are shown and no synthetic results appear; plugin results still show | GitHubFailureTests |
 | R5 | Must | Web UI at http://127.0.0.1:5057/, separate from SysPerf on 5056, reachable from Windows | live health check via Windows curl.exe |
-| R6 | Must | Usable from Claude Code as a plugin (`/req-analyze`, skill) | `claude plugin validate`, install, CLI tests |
+| R6 | Must | Usable from Claude Code as a plugin (one skill `reusefirst`: analyze, build, enhance, status) | `claude plugin validate`, install, CLI tests |
 | R7 | Must | Invalid input (empty, >5000 chars, bad keywords, bad JSON, wrong content type, oversize body) is rejected with 4xx | ValidationTests, ServerTests.test_bad_requests |
 | R8 | Must | Only localhost can drive the API (bind 127.0.0.1, Host check, JSON-only POST, CSP) | test_rejects_foreign_host, test_rejects_form_posts |
 | R9 | Should | Analysis completes in <20 s with GitHub, <1 s without | measured: ~10 s cold, 0.04 s cached |
