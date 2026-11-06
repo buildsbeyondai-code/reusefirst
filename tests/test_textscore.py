@@ -3,7 +3,7 @@ import unittest
 import helpers  # noqa: F401  (sets import path)
 from reqanalyzer import textscore as ts
 
-IDF = lambda t: 1.0  # noqa: E731  uniform weights make expectations exact
+IDF = lambda t: 1.0
 
 
 class TextTests(unittest.TestCase):
@@ -58,7 +58,7 @@ class ScoreTests(unittest.TestCase):
         self.assertEqual(ts.score(["x"], [], IDF)["closeness"], 0)
 
     def test_rare_concepts_weigh_more(self):
-        idf = lambda t: 5.0 if t == "stripe" else 1.0  # noqa: E731
+        idf = lambda t: 5.0 if t == "stripe" else 1.0
         rc = ts.concepts("stripe invoice")
         self.assertGreater(ts.score(rc, ts.terms("stripe"), idf)["closeness"],
                            ts.score(rc, ts.terms("invoice"), idf)["closeness"])

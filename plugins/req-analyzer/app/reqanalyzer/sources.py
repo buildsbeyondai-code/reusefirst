@@ -13,9 +13,8 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from pathlib import Path
-
 from collections import OrderedDict
+from pathlib import Path
 
 from . import policy
 
@@ -121,7 +120,7 @@ def github_token() -> str | None:
         if not _token and os.environ.get("REQAN_NO_GH_CLI") != "1":
             for cmd in (["gh", "auth", "token"], ["powershell.exe", "-NoProfile", "-Command", "gh auth token"]):
                 try:
-                    r = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+                    r = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=20)
                 except (OSError, subprocess.TimeoutExpired):
                     continue
                 tok = r.stdout.strip()
@@ -184,7 +183,7 @@ def cache_info() -> dict:
 
 def _get_json(url: str, headers: dict, what: str, raw: bool = False):
     try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=HTTP_TIMEOUT_S) as r:  # noqa: S310
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=HTTP_TIMEOUT_S) as r:  # nosec B310 - every base URL passes safe_base()
             if "api.github" in url or url.startswith(GITHUB_API):
                 for h in ("X-RateLimit-Remaining", "X-RateLimit-Reset", "X-RateLimit-Resource"):
                     if r.headers.get(h):

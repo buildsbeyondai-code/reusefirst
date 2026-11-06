@@ -6,8 +6,8 @@ import re
 import threading
 import time
 from collections import Counter
-
-from concurrent.futures import ThreadPoolExecutor, wait as fwait
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import wait as fwait
 
 from . import policy, sources, textscore
 from .obs import METRICS
@@ -54,7 +54,7 @@ def catalog(reload: bool = False) -> dict:
 def make_idf(cat: dict, actions: bool = True):
     n = len(cat["plugins"])
     df = cat["df"]
-    base = lambda t: math.log((n + 1) / (df.get(t, 0) + 1)) + 1.0  # noqa: E731
+    base = lambda t: math.log((n + 1) / (df.get(t, 0) + 1)) + 1.0
     return textscore.weighted(base) if actions else base
 
 

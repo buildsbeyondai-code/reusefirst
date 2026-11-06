@@ -211,7 +211,7 @@ def osv_check(deps: list[dict], timeout: float = 20) -> tuple[str, list[str]]:
     try:
         req = urllib.request.Request(OSV_URL, data=body, headers={"Content-Type": "application/json",
                                                                   "User-Agent": "reusefirst-gates"})
-        with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 - scheme checked above
+        with urllib.request.urlopen(req, timeout=timeout) as r:  # nosec B310 - scheme checked above (https or 127.0.0.1)
             res = json.load(r).get("results") or []
     except (urllib.error.URLError, OSError, ValueError) as e:
         return NOT_VERIFIED, [f"OSV unreachable: {e}"]

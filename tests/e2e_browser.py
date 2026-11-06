@@ -46,6 +46,11 @@ with sync_playwright() as p:
         pg.fill("#filter", "")
         assert pg.locator("#verdict .va button").count() >= 1, "verdict has no next-step action"
         assert pg.evaluate("document.querySelector('#req').offsetHeight") <= 140, "requirement box did not shrink after results"
+        # 2.0: reuse-or-build decision, per-candidate assessment chips, packages table, relevance labelling
+        assert "Reuse or build?" in pg.text_content("#decision"), "decision panel missing"
+        assert pg.locator("#gt .assess .chip").count() >= 1, "candidate assessment missing"
+        assert pg.locator("#kt tbody tr").count() >= 1, "packages table empty"
+        assert "uncalibrated" in pg.text_content("#method").lower() or "UNCALIBRATED" in pg.text_content("#method")
         first_link = pg.locator("#gt tbody tr a").first.get_attribute("href")
         assert first_link.startswith("https://github.com/"), first_link
         pg.screenshot(path=f"{SHOTS}/req-analyzer-{scheme}.png", full_page=False)
@@ -161,7 +166,7 @@ with sync_playwright() as p:
     # clean up: the analyses this run saved (see LEARNINGS)
     ctx = pg.request
     tok = ctx.get(BASE + "api/session").json()["token"]
-    for h in ctx.get(BASE + "api/analyses").json()["analyses"]:
+    for h in ctx.get(BASE + "api/analyses", headers={"X-ReqAn-Token": tok}).json()["analyses"]:
         if h["requirement"] == REQ:
             ctx.post(BASE + f"api/analyses/{h['id']}/delete", headers={"X-ReqAn-Token": tok, "Content-Type": "application/json"}, data="{}")
     b.close()

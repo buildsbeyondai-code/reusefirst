@@ -77,7 +77,7 @@ class AnalyzeTests(unittest.TestCase):
         self.assertEqual((rec["license"], rec["updated"], rec["language"]), ("none", "", ""))
 
     def test_queries_are_bounded_and_scoped(self):
-        r = engine.analyze(REQ)
+        engine.analyze(REQ)
         self.assertLessEqual(len(self.gh.queries), engine.MAX_GITHUB_QUERIES)
         self.assertTrue(all("in%3Aname%2Cdescription%2Ctopics" in q for q in self.gh.queries))
 

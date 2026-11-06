@@ -7,8 +7,9 @@ import time
 import unittest
 from pathlib import Path
 
-import helpers  # noqa: F401
-from reqanalyzer import builder, decision, gates, lifecycle as L, obs, policy, reuse, sources
+import helpers
+from reqanalyzer import builder, decision, gates, obs, policy, reuse, sources
+from reqanalyzer import lifecycle as L
 
 
 class GithubUrlTests(unittest.TestCase):
@@ -208,7 +209,7 @@ class GateTests(unittest.TestCase):
         self.assertEqual(gates.parse_test_output("== 7 passed, 2 failed in 1s =="), {"passed": 7, "failed": 2})
 
     def test_decide(self):
-        g = lambda st, m=True: {"name": "g", "mandatory": m, "status": st, "detail": "d"}  # noqa: E731
+        g = lambda st, m=True: {"name": "g", "mandatory": m, "status": st, "detail": "d"}
         self.assertEqual(gates.decide([g(gates.VERIFIED), g(gates.NA), g(gates.FAILED, False)])[0], L.SUCCEEDED)
         self.assertEqual(gates.decide([g(gates.VERIFIED), g(gates.NOT_VERIFIED)])[0], L.PARTIALLY_COMPLETED)
         self.assertEqual(gates.decide([g(gates.BLOCKED), g(gates.FAILED)])[0], L.FAILED)

@@ -50,6 +50,7 @@ emit({"type": "assistant", "message": {"content": [
 emit({"type": "user", "message": {"content": [{"type": "tool_result", "is_error": True, "content": "Permission denied: rm"}]}})
 Path("app.py").write_text("def add(a, b):\n    return a + b\n")
 import re
+
 m = re.search(r"web apps on 127\.0\.0\.1:(\d+)", " ".join(args))
 Path("run.sh").write_text(f"#!/bin/sh\nexec python3 -m http.server {m.group(1) if m else 8000} --bind 127.0.0.1\n")
 Path("docs").mkdir(exist_ok=True)

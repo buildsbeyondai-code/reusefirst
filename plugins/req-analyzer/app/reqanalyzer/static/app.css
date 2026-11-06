@@ -488,3 +488,13 @@ html.has-results textarea#req { height: 120px; }
 /* Build tab: choose a new app or an existing app to enhance */
 .into { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; white-space: nowrap; }
 .into select { min-width: 14rem; max-width: 22rem; }
+
+/* 2.0: decision panel, candidate assessment, verification gates */
+.decision { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s3) var(--s4); margin-top: var(--s3); }
+.decision:empty { display: none; }
+.decision h3 { margin: 0 0 var(--s2); font-size: .875rem; font-weight: 600; display: flex; gap: var(--s2); align-items: center; flex-wrap: wrap; }
+.decision ul { margin: var(--s1) 0 0; padding-left: 1.2rem; font-size: .8125rem; }
+.decision .opts { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s2); }
+.decision .opt { border: 1px solid var(--border); border-radius: var(--r-md, 8px); padding: var(--s2) var(--s3); font-size: .8125rem; min-width: 180px; }
+.assess { display: flex; flex-wrap: wrap; gap: 4px; }
+#gates td:first-child { white-space: nowrap; }

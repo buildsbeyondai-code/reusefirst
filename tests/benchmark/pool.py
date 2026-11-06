@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "plugins" / "req-analyzer" / "app"))
-from reqanalyzer import engine, textscore  # noqa: E402
+from reqanalyzer import engine, textscore
 
 QUERIES = json.loads((Path(__file__).parent / "queries.json").read_text())
 

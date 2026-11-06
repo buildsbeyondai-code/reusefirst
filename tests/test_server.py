@@ -94,6 +94,7 @@ class ServerTests(unittest.TestCase):
     def test_history_keeps_newest(self):
         import tempfile
         from pathlib import Path
+
         from reqanalyzer import history
         h = history.History(Path(tempfile.mkdtemp()))
         old = history.MAX_KEEP

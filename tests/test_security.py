@@ -42,7 +42,7 @@ class Base(unittest.TestCase):
         s.sendall(data)
         try:
             return s.recv(200)
-        except socket.timeout:
+        except TimeoutError:
             return b"TIMEOUT"
         finally:
             s.close()

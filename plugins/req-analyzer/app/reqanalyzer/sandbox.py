@@ -88,7 +88,7 @@ def bwrap_args(spec: Spec, sock_dir: Path, exe: str | None = None) -> list[str]:
     inside = str(spec.mount_as) if spec.mount_as else work
     args = [bwrap_bin() or "bwrap", "--unshare-all", "--die-with-parent", "--new-session", "--cap-drop", "ALL",
             "--clearenv", "--hostname", "reusefirst-sandbox", *_system_binds(),
-            "--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp", "--tmpfs", "/run", "--tmpfs", HOME,
+            "--proc", "/proc", "--dev", "/dev", "--tmpfs", "/tmp", "--tmpfs", "/run", "--tmpfs", HOME,  # nosec B108 - fresh tmpfs inside the sandbox
             "--ro-bind", str(INIT.parent), PKG_MOUNT]
     py = os.path.realpath(sys.executable)
     ro = list(spec.ro_paths)
@@ -111,7 +111,7 @@ def bwrap_args(spec: Spec, sock_dir: Path, exe: str | None = None) -> list[str]:
         if os.path.exists(src):
             args += ["--ro-bind", str(src), str(dst)]
     args += ["--bind", str(sock_dir), SOCK_MOUNT, "--chdir", inside]
-    env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": HOME, "LANG": "C.UTF-8", "TMPDIR": "/tmp",
+    env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": HOME, "LANG": "C.UTF-8", "TMPDIR": "/tmp",  # nosec B108 - sandbox-internal tmpfs
            "TERM": "dumb", "PYTHONDONTWRITEBYTECODE": "1"}
     if exe and _outside_usr(os.path.realpath(exe)):
         env["PATH"] = os.path.dirname(os.path.realpath(exe)) + ":" + env["PATH"]

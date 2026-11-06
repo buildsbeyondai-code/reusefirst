@@ -8,7 +8,7 @@ from pathlib import Path
 import helpers  # noqa: F401
 
 sys.path.insert(0, str(Path(__file__).parent / "benchmark"))
-import run_benchmark  # noqa: E402
+import run_benchmark
 
 
 class BenchmarkTests(unittest.TestCase):

@@ -5,7 +5,6 @@ import os
 import shutil
 import tarfile
 import threading
-import time
 import unittest
 from pathlib import Path
 
@@ -168,7 +167,7 @@ class EnhanceTests(unittest.TestCase):
 class StandardPathTests(unittest.TestCase):
     def test_env_then_config_then_bundled(self):
         cfg = helpers.TMP / "cfg.json"
-        old_cfg, old_env = builder.CONFIG_FILE, os.environ.pop("REQAN_X", None)
+        old_cfg, _old_env = builder.CONFIG_FILE, os.environ.pop("REQAN_X", None)
         builder.CONFIG_FILE = cfg
         try:
             bundled = builder.standard_path("REQAN_X", "uaises", "UNIVERSAL_AI_SOFTWARE_ENGINEERING_STANDARD.md")

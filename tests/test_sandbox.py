@@ -7,7 +7,7 @@ import time
 import unittest
 from pathlib import Path
 
-import helpers  # noqa: F401  (environment)
+import helpers
 from reqanalyzer import sandbox
 
 HAVE = bool(sandbox.bwrap_bin()) and sandbox.self_test()["ok"]
@@ -62,7 +62,7 @@ class IsolationTests(unittest.TestCase):
         ls = socket.socket()
         ls.bind(("127.0.0.1", 0))
         ls.listen(5)
-        port = ls.getsockname()[1]
+        ls.getsockname()[1]
 
         def echo():
             c, _ = ls.accept()
@@ -157,3 +157,107 @@ class FailClosedTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ProxyAndInitUnitTests(unittest.TestCase):
+    """The egress proxy and the in-sandbox init, exercised in-process (no bubblewrap needed)."""
+
+    def echo_server(self):
+        ls = socket.socket()
+        ls.bind(("127.0.0.1", 0))
+        ls.listen(5)
+
+        def loop():
+            while True:
+                try:
+                    c, _ = ls.accept()
+                except OSError:
+                    return
+                data = c.recv(100)
+                c.sendall(b"echo:" + data)
+                c.close()
+        threading.Thread(target=loop, daemon=True).start()
+        self.addCleanup(ls.close)
+        return ls.getsockname()[1]
+
+    def proxy(self, allow, private=True):
+        d = Path(tempfile.mkdtemp())
+        p = sandbox.EgressProxy(d / "e.sock", frozenset(allow), allow_private=private)
+        self.addCleanup(p.close)
+        return p, str(d / "e.sock")
+
+    def ask(self, sock, line, payload=b""):
+        s = socket.socket(socket.AF_UNIX)
+        s.connect(sock)
+        s.sendall(line + b"\r\n\r\n" + payload)
+        out = b""
+        s.settimeout(5)
+        try:
+            while True:
+                chunk = s.recv(200)
+                if not chunk:
+                    break
+                out += chunk
+                if b"echo:" in out or b"Forbidden" in out:
+                    break
+        except TimeoutError:
+            pass
+        s.close()
+        return out
+
+    def test_proxy_paths(self):
+        port = self.echo_server()
+        p, sock = self.proxy({"localhost"})
+        old = sandbox.socket.getaddrinfo
+        try:
+            def fake(target):
+                return lambda h, *a, **k: [(2, 1, 6, "", ("127.0.0.1", target))] if h == "localhost" else old(h, *a, **k)
+            sandbox.socket.getaddrinfo = fake(port)
+            out = self.ask(sock, b"CONNECT localhost:443 HTTP/1.1", b"hi")
+            self.assertIn(b"200 Connection established", out)
+            self.assertIn(b"echo:hi", out)
+
+            def nodns(h, *a, **k):
+                if h == "localhost":
+                    raise OSError("no such host")
+                return old(h, *a, **k)
+            sandbox.socket.getaddrinfo = nodns
+            self.assertIn(b"502", self.ask(sock, b"CONNECT localhost:443 HTTP/1.1"))
+            sandbox.socket.getaddrinfo = fake(1)
+            self.assertIn(b"502", self.ask(sock, b"CONNECT localhost:443 HTTP/1.1"))  # connect refused
+        finally:
+            sandbox.socket.getaddrinfo = old
+        self.assertIn(b"403", self.ask(sock, b"GARBAGE"))
+        self.assertIn(b"403", self.ask(sock, b"CONNECT localhost:notaport HTTP/1.1"))
+        self.assertIn(b"403", self.ask(sock, b"CONNECT other.example:443 HTTP/1.1"))
+        self.assertTrue(any(e["allowed"] for e in p.log) and any(not e["allowed"] for e in p.log))
+        self.assertTrue(sandbox._host_allowed("api.x.com", frozenset({"*.x.com"})))
+        self.assertFalse(sandbox._host_allowed("evilx.com", frozenset({"*.x.com"})))
+
+    def test_private_addresses_refused_by_default(self):
+        _, sock = self.proxy({"localhost"}, private=False)
+        self.assertIn(b"non-public", self.ask(sock, b"CONNECT localhost:443 HTTP/1.1"))
+
+    def test_init_relays_and_exit_code(self):
+        import signal
+
+        from reqanalyzer import sbx_init
+        for sig in (signal.SIGTERM, signal.SIGINT):  # main() installs forwarding handlers; restore the runner's
+            self.addCleanup(signal.signal, sig, signal.getsignal(sig))
+        port = self.echo_server()
+        d = Path(tempfile.mkdtemp())
+        us = socket.socket(socket.AF_UNIX)
+        us.bind(str(d / "egress.sock"))
+        us.listen(5)
+        self.addCleanup(us.close)
+        threading.Thread(target=sbx_init.serve, args=(us, sbx_init.tcp_connector(port)), daemon=True).start()
+        eport = helpers.free_port()
+        code = ("import socket,sys\n"
+                f"s=socket.create_connection(('127.0.0.1',{eport}),timeout=5); s.sendall(b'x'); d=s.recv(20)\n"
+                "sys.exit(7 if d==b'echo:x' else 1)")
+        rc = sbx_init.main(["--egress-sock", str(d / "egress.sock"), "--egress-port", str(eport),
+                            "--inbound-sock", str(d / "in.sock"), "--inbound-port", str(port), "--", PY, "-c",
+                            "import time; time.sleep(0.3)\n" + code])
+        self.assertEqual(rc, 7)
+        self.assertEqual(sbx_init.main(["--"]), 2)
+        self.assertEqual(sbx_init.main(["--", "/nonexistent/binary"]), 127)

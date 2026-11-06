@@ -25,9 +25,36 @@ function chip(text, tone, iconName) {
 function band(verdict) {
   const v = String(verdict || "").toLowerCase();
   if (v.startsWith("reuse")) return { tone: "success", icon: "check", word: "Reuse" };
-  if (v.startsWith("fork")) return { tone: "info", icon: "branch", word: "Fork / extend" };
+  if (v.startsWith("fork") || v.startsWith("extend")) return { tone: "info", icon: "branch", word: "Fork / extend" };
   if (v.startsWith("borrow")) return { tone: "warning", icon: "layers", word: "Borrow parts" };
+  if (v.includes("insufficient evidence")) return { tone: "warning", icon: "alert", word: "Insufficient evidence" };
   return { tone: "neutral", icon: "build", word: "Build new" };
+}
+// 2.0 per-candidate assessment: recommendation, evidence confidence, licence, compatibility, maintenance.
+const LIC_TONE = { allowed: "success", review: "warning", "learn-only": "danger" };
+function assessCell(x) {
+  const ev = x.evidence || {}, lic = x.licence || {}, m = x.maintenance || {};
+  const rb = band(x.recommendation || "");
+  return el("td", {}, el("div", { class: "assess" },
+    chip(x.recommendation || "—", rb.tone, rb.icon),
+    el("span", { class: "tag", title: "Evidence confidence (heuristic, uncalibrated): " + (ev.sources || []).join(", ") }, `evidence ${ev.confidence ?? 0}%`),
+    lic.spdx ? el("span", { class: "tag c-" + (LIC_TONE[lic.reuse] || "neutral"), title: lic.reason || "" }, `${lic.spdx}: ${lic.reuse}`) : null,
+    x.compatibility && x.compatibility !== "unknown" ? el("span", { class: "tag c-" + (x.compatibility === "pass" ? "success" : "danger"),
+      title: (x.compatibility_reasons || []).join("; ") }, "compat " + x.compatibility) : null,
+    m.state && m.state !== "unknown" ? el("span", { class: "tag" + (m.state === "active" ? "" : " c-warning") }, m.state) : null,
+    ev.readme_inspected ? el("span", { class: "tag c-violet", title: "Concepts confirmed in the README: " + (ev.confirmed_in_readme || []).join(", ") }, "README checked") : null));
+}
+function renderDecision(d) {
+  const box = $("#decision");
+  if (!d) { box.replaceChildren(); return; }
+  const b = band(d.recommendation);
+  const opts = (d.options || []).map((o) => el("div", { class: "opt" }, el("strong", {}, o.candidate), el("div", {}, `${o.strategy} · coverage ${o.coverage}% · evidence ${o.confidence}%`),
+    el("div", {}, o.effort ? `reuse effort ${o.effort.low}–${o.effort.high} units` : "cannot copy: licence")));
+  box.replaceChildren(
+    el("h3", { id: "dec-h" }, icon("chart"), "Reuse or build? ", chip(b.word, b.tone, b.icon),
+      el("span", { class: "tag" }, `build new ${d.build_new.low}–${d.build_new.high} ${d.units}`), el("span", { class: "tag" }, "confidence " + d.confidence)),
+    opts.length ? el("div", { class: "opts" }, ...opts) : el("p", { class: "small" }, "No candidate covers 30% or more of the requirement."),
+    el("ul", { class: "desc-only" }, ...(d.sensitivity || []).map((t) => el("li", {}, t)), ...(d.assumptions || []).map((t) => el("li", { class: "small" }, t))));
 }
 // Categorical palette (UEUIS §8.16): k1..k5 give non-status items their own colour; 0 keeps the status tone.
 function kTile(t, k) { if (k) t.classList.add("k" + k); return t; }
@@ -35,11 +62,15 @@ function tile(label, value, note, tone, iconName) {
   return el("div", { class: "tile t-" + tone }, el("div", { class: "eyebrow" }, icon(iconName), label),
     el("div", { class: "value" }, value), note ? el("div", { class: "note" }, note) : null);
 }
-const STATUS = { succeeded: ["success", "check"], failed: ["danger", "x"], "timed-out": ["danger", "clock"],
-  interrupted: ["danger", "alert"], cancelled: ["neutral", "stop"], running: ["warning", null], queued: ["info", "clock"] };
+const STATUS = { succeeded: ["success", "check"], failed: ["danger", "x"], "timed-out": ["danger", "clock"], timed_out: ["danger", "clock"],
+  interrupted: ["danger", "alert"], cancelled: ["neutral", "stop"], running: ["warning", null], queued: ["info", "clock"],
+  created: ["info", "clock"], validated: ["info", "clock"], preparing: ["warning", null], verifying: ["warning", null],
+  partially_completed: ["warning", "alert"], blocked: ["danger", "alert"] };
+const ACTIVE = new Set(["created", "validated", "queued", "preparing", "running", "verifying"]);
+const GATE_TONE = { VERIFIED: ["success", "check"], NOT_VERIFIED: ["warning", "alert"], FAILED: ["danger", "x"], BLOCKED: ["danger", "alert"], "N/A": ["neutral", "info"] };
 function statusChip(st) {
   const [tone, ic] = STATUS[st] || ["neutral", "info"];
-  const c = chip(st, tone, ic);
+  const c = chip(String(st).replace(/_/g, " "), tone, ic);
   if (!ic) c.prepend(el("span", { class: "dot", "aria-hidden": "true" }));
   return c;
 }
@@ -203,7 +234,7 @@ function skeleton() {
   $("#tiles").replaceChildren(...[1, 2, 3, 4, 5].map(() => el("div", { class: "tile t-neutral" }, el("span", { class: "skel w40" }),
     el("span", { class: "skel tall w60" }), el("span", { class: "skel w80" }))));
   $("#dist").replaceChildren(el("span", { class: "skel w40" }), el("span", { class: "skel" }));
-  for (const [id, cols] of [["#pt", 4], ["#gt", 5]]) {
+  for (const [id, cols] of [["#pt", 4], ["#gt", 5], ["#kt", 5]]) {
     $(id + " tbody").replaceChildren(...[1, 2, 3].map(() => el("tr", {}, ...Array.from({ length: cols }, () => el("td", {}, el("span", { class: "skel" }))))));
   }
 }
@@ -241,7 +272,9 @@ function render(r) {
   $("#meta").textContent = `Key concepts: ${r.concepts.join(", ") || "(none)"} · ` +
     `GitHub: ${r.github_status}${r.github_authenticated ? " (authenticated)" : r.github_authenticated === false ? " (unauthenticated, 10 searches/min)" : ""}` +
     ` · ${r.catalog_size} Claude plugins indexed · ${r.elapsed_s}s`;
-  renderDist([...r.claude_plugins, ...r.github]);
+  renderDist([...r.claude_plugins, ...r.github, ...(r.packages || [])]);
+  renderDecision(r.decision);
+  STATE.analysisId = r.saved ? r.saved.id : null;
   $("#out").removeAttribute("aria-busy");
   STATE.analyzed = true;
   const errs = $("#errors"); errs.replaceChildren();
@@ -251,7 +284,7 @@ function render(r) {
   for (const x of r.claude_plugins) {
     pt.append(el("tr", { "data-text": `${x.name} ${x.description} ${x.category || ""}`.toLowerCase() }, pctCell(x.closeness),
       nameCell(x, [x.reviewed ? "reviewed" : null, x.category || null], "plugin"),
-      clampCell(x.description, el("div", { class: "meta-line" }, x.source)),
+      clampCell(x.description, el("div", { class: "meta-line" }, x.source, assessCell(x).firstChild)),
       gapsCell(x.missing)));
   }
   if (!r.claude_plugins.length) messageRow(pt, 4, "Describe in more detail what the app must do.", "", "No Claude plugin shares a key concept", "plug");
@@ -266,13 +299,23 @@ function render(r) {
       nameCell(x, [x.is_claude_plugin ? "claude plugin" : null, x.archived ? "archived" : null, x.language || null], "gh"),
       clampCell(x.description || "(no description)"),
       el("td", {}, el("div", { class: "meta-line" }, el("span", { title: x.stars.toLocaleString() + " stars" }, icon("star"), " " + compact(x.stars)),
-        lic, el("span", { title: "Last push " + (x.updated || "unknown") }, icon("clock"), " " + relDate(x.updated)))),
+        lic, el("span", { title: "Last push " + (x.updated || "unknown") }, icon("clock"), " " + relDate(x.updated))), assessCell(x).firstChild),
       gapsCell(x.missing)));
   }
   if (!r.github.length) messageRow(gt, 5, r.github_status === "skipped" ? "Tick Search GitHub and analyze again."
     : "See the warnings above, or describe the app in more detail.", "", r.github_status === "skipped" ? "GitHub search was turned off" : "No repositories found", "branch");
   $("#gc").textContent = `(top ${r.github.length})`;
-  $("#method").textContent = "How closeness is computed: " + r.method;
+  const kt = $("#kt tbody"); kt.replaceChildren();
+  for (const x of r.packages || []) {
+    kt.append(el("tr", { "data-text": `${x.name} ${x.description || ""} ${x.ecosystem}`.toLowerCase() }, pctCell(x.closeness),
+      nameCell(x, [x.ecosystem, x.version ? "v" + x.version : null], "plugin"), clampCell(x.description || "(no description)"),
+      assessCell(x), gapsCell(x.missing)));
+  }
+  if (!(r.packages || []).length) messageRow(kt, 5, "Package registries are searched together with GitHub.", "", "No packages found", "layers");
+  $("#kc").textContent = `(top ${(r.packages || []).length})`;
+  labelCells("#kt");
+  $("#method").textContent = "How relevance is computed: " + r.method + (r.confidence_mode ? " Mode: " + r.confidence_mode + "." : "") +
+    (r.stale ? " Some GitHub results come from a cache older than 10 minutes." : "");
   labelCells("#pt"); labelCells("#gt");
   $("#filter").value = ""; applyFilter();
 }
@@ -281,7 +324,7 @@ function render(r) {
 function applyFilter() {
   const q = $("#filter").value.trim().toLowerCase();
   let shown = 0, total = 0;
-  for (const tr of document.querySelectorAll("#pt tbody tr[data-text], #gt tbody tr[data-text]")) {
+  for (const tr of document.querySelectorAll("#pt tbody tr[data-text], #gt tbody tr[data-text], #kt tbody tr[data-text]")) {
     total++; const hit = !q || tr.dataset.text.includes(q); tr.hidden = !hit; if (hit) shown++;
   }
   $("#fcount").textContent = q ? `Showing ${shown} of ${total}` : `${total} results`;
@@ -300,12 +343,7 @@ $("#f").addEventListener("submit", async (ev) => {
   status.textContent = $("#gh").checked ? "Analyzing… (searching GitHub, up to ~20 s)" : "Analyzing…";
   skeleton();
   try {
-    const res = await fetch("/api/analyze", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requirement, github: $("#gh").checked, top: 10 }),
-    });
-    const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    const data = await api("/api/analyze", { method: "POST", body: JSON.stringify({ requirement, github: $("#gh").checked, top: 10 }) });
     render(data);
     status.textContent = data.saved ? `Done. Saved ${fmtTime(data.saved.created_at)}.` : "Done.";
     status.className = "ok";
@@ -364,9 +402,10 @@ async function loadStatus() {
     // ISA-101 calm display: one summary when all is well; problems are always shown, details on demand.
     const items = [
       [`Server v${h.version} · up ${Math.floor(h.uptime_s / 60)} min`, h.ok ? "good" : "bad", "server"],
-      [`${Number(h.catalog_size).toLocaleString()} plugins indexed`, h.catalog_size > 0 && !(h.catalog_errors || []).length ? "good" : "bad", "plug"],
+      [`${Number(h.catalog_size).toLocaleString()} plugins indexed`, h.catalog_size > 0 && !h.catalog_errors ? "good" : "bad", "plug"],
       [h.github_authenticated ? "GitHub: signed in" : "GitHub: anonymous, 10 searches/min", h.github_authenticated ? "good" : "note", "branch"],
       [h.claude_cli ? "Claude CLI ready" : "Claude CLI missing: builds disabled", h.claude_cli ? "good" : "bad", h.claude_cli ? "check" : "alert"],
+      [h.sandbox_ok ? `Build sandbox verified (${h.resource_control})` : "No verified sandbox: builds blocked, analysis works", h.sandbox_ok ? "good" : "bad", "shield"],
       [h.standard_found && h.ui_standard_found ? "UAISES + UEUIS found" : "Standard file missing: builds refuse", h.standard_found && h.ui_standard_found ? "good" : "bad", "shield"],
       [h.build_running ? "Build running" : "No build running", h.build_running ? "note" : "good", h.build_running ? "build" : "check"]];
     const bad = items.filter((i) => i[1] === "bad");
@@ -419,11 +458,17 @@ document.querySelector(".tabs").addEventListener("keydown", (e) => {
 try { const t = localStorage.getItem("reqan-tab"); if (TABS.includes(t) && t !== "analyze") selectTab(t); } catch { /* ignore */ }
 
 /* ------------------------------------------------------------ build */
-let TOKEN = null, FIELDS = [], POLL = null, JOB = null, SEEN = 0;
+let TOKEN = null, FIELDS = [], POLL = null, JOB = null, SEEN = 0, IDEM = null;
 
 async function api(path, opts = {}) {
-  if (!TOKEN && opts.method === "POST") {
-    const s = await (await fetch("/api/session")).json(); TOKEN = s.token;
+  if (!TOKEN) {
+    const m = /(?:^|[#&])token=([\w-]{16,128})/.exec(location.hash);   // strict mode: link printed by the plugin
+    if (m) { TOKEN = m[1]; history.replaceState(null, "", location.pathname); }
+    else {
+      const r = await fetch("/api/session");
+      if (!r.ok) throw new Error("this server needs the link with the token (strict mode); ask Claude for the ReuseFirst link");
+      TOKEN = (await r.json()).token;
+    }
   }
   const res = await fetch(path, { ...opts, headers: { "Content-Type": "application/json", "X-ReqAn-Token": TOKEN || "", ...(opts.headers || {}) } });
   const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
@@ -461,8 +506,9 @@ function renderField(f) {
       const cb = el("input", { type: "checkbox", "data-val": o }); cb.checked = (f.default || []).includes(o);
       const parts = o.split(" · ");
       const url = safeUrl(parts[parts.length - 1]);
+      const why = (f.not_preselected || {})[o];
       input.append(el("label", {}, cb, el("span", {}, parts.slice(0, -1).join(" · ") + " ",
-        url ? extLink(url, "open") : null)));
+        url ? extLink(url, "open") : null, why ? el("span", { class: "help" }, " Not pre-ticked: " + why.join("; ")) : null)));
     });
   } else {
     input = el("input", { id, type: "text", maxlength: "4000" }); input.value = f.default ?? "";
@@ -496,7 +542,7 @@ let APPS_LOADED = false;
 async function loadApps() {
   if (APPS_LOADED) return;
   try {
-    const r = await (await fetch("/api/apps")).json();
+    const r = await api("/api/apps");
     const sel = $("#build-into");
     for (const a of r.apps || []) { const o = el("option", {}, "Enhance: " + a.name); o.value = a.path; sel.append(o); }
     APPS_LOADED = true;
@@ -562,7 +608,10 @@ $("#inputs").addEventListener("submit", async (ev) => {
   sum.hidden = true;
   setBusy($("#create"), true, "Starting…");
   try {
-    const job = await api("/api/build", { method: "POST", body: JSON.stringify({ requirement: $("#req").value.trim(), answers, labels }) });
+    IDEM = IDEM || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+    const job = await api("/api/build", { method: "POST", headers: { "Idempotency-Key": IDEM },
+      body: JSON.stringify({ requirement: $("#req").value.trim(), answers, labels, analysis_id: STATE.analysisId || undefined }) });
+    IDEM = null;
     st.textContent = "Build started.";
     toast("Build started: " + answers.app_name, "build");
     watch(job.id);
@@ -576,7 +625,8 @@ function dur(a, b) { if (!a) return "—"; const s = Math.round((b || Date.now()
 
 function watch(id) {
   JOB = id; SEEN = 0; $("#events").replaceChildren(); $("#job").hidden = false;
-  $("#report-wrap").hidden = true; $("#launch").hidden = true; $("#launch-out").textContent = "";
+  $("#report-wrap").hidden = true; $("#launch").hidden = true; $("#stop-app").hidden = true; $("#launch-out").textContent = "";
+  $("#gates-wrap").hidden = true;
   clearInterval(POLL); poll(); POLL = setInterval(poll, 2000);
   reveal($("#job"));
 }
@@ -584,7 +634,7 @@ function watch(id) {
 async function poll() {
   if (!JOB) return;
   let j;
-  try { j = await (await fetch(`/api/builds/${encodeURIComponent(JOB)}?since=${SEEN}`)).json(); }
+  try { j = await api(`/api/builds/${encodeURIComponent(JOB)}?since=${SEEN}`); }
   catch (e) { $("#job-meta").textContent = "Lost contact with the server: " + e.message; return; }
   if (j.error && !j.id) { $("#job-meta").textContent = j.error; clearInterval(POLL); return; }
   const list = $("#events");
@@ -597,15 +647,25 @@ async function poll() {
   $("#job-meta").append(` ${dur(j.started_at, j.finished_at)}` +
     (j.cost_usd != null ? ` · cost $${j.cost_usd.toFixed(2)}` : "") + (j.denials ? ` · ${j.denials} actions refused by the allowlist` : "") +
     (j.error ? ` · ${j.error}` : "") + (j.file_count != null ? ` · ${j.file_count} files` : "") +
-    (j.has_reuse_doc ? " · reuse recorded in docs/REUSE.md" : ""));
-  const live = j.status === "running" || j.status === "queued";
+    (j.has_reuse_doc ? " · reuse recorded in docs/REUSE.md" : "") + (j.cost_usd != null ? " (model-reported estimate, not billing)" : "") +
+    (j.egress && j.egress.denied_hosts && j.egress.denied_hosts.length ? ` · sandbox refused network to ${j.egress.denied_hosts.length} host(s)` : "") +
+    (j.reasons && j.reasons.length && !ACTIVE.has(j.status) ? " · " + j.reasons.join("; ") : ""));
+  const live = ACTIVE.has(j.status);
+  const gt = $("#gates tbody"); gt.replaceChildren();
+  for (const g of j.gates || []) {
+    const [tone, ic] = GATE_TONE[g.status] || ["neutral", "info"];
+    gt.append(el("tr", {}, el("td", {}, g.name + (g.mandatory ? "" : " (advisory)")), el("td", {}, chip(g.status.replace(/_/g, " "), tone, ic)), el("td", { class: "small" }, g.detail)));
+  }
+  labelCells("#gates");
+  $("#gates-wrap").hidden = !(j.gates || []).length;
   STATE.build = j.status;
   $("#cancel").hidden = !live;
   if (!live) {
     clearInterval(POLL);
     if (j.report) { $("#report").textContent = j.report; $("#report-wrap").hidden = false; }
     else if (j.result) { $("#report").textContent = j.result; $("#report-wrap").hidden = false; }
-    $("#launch").hidden = !(j.status === "succeeded" && j.has_run_sh);
+    $("#launch").hidden = !(j.status === "succeeded" && j.has_run_sh) || !!j.app_running;
+    $("#stop-app").hidden = !j.app_running;
     loadBuilds();
   }
 }
@@ -621,13 +681,20 @@ $("#launch").addEventListener("click", async () => {
     const r = await api(`/api/builds/${encodeURIComponent(JOB)}/launch`, { method: "POST", body: "{}" });
     const u = safeUrl(r.url) || (r.url && r.url.startsWith("http://127.0.0.1:") ? r.url : null);
     toast("App started" + (u ? " at " + u : ""), "play");
-    $("#launch-out").replaceChildren(`Started (pid ${r.pid}). `, u ? extLink(u, u) : "");
+    $("#launch-out").replaceChildren(`Started in the sandbox (${r.health}). `, u ? extLink(u, u) : "");
+    $("#launch").hidden = true; $("#stop-app").hidden = false;
   } catch (e) { $("#launch-out").textContent = "Launch failed: " + e.message; }
+});
+$("#stop-app").addEventListener("click", async () => {
+  try {
+    await api(`/api/builds/${encodeURIComponent(JOB)}/stop`, { method: "POST", body: "{}" });
+    $("#launch-out").textContent = "App stopped."; $("#stop-app").hidden = true; $("#launch").hidden = false;
+  } catch (e) { $("#launch-out").textContent = "Stop failed: " + e.message; }
 });
 
 async function loadBuilds() {
   try {
-    const { builds } = await (await fetch("/api/builds")).json();
+    const { builds } = await api("/api/builds");
     const tb = $("#bt tbody"); tb.replaceChildren();
     for (const b of builds) {
       const a = el("a", { href: "#" }, b.app_name);
@@ -638,7 +705,7 @@ async function loadBuilds() {
     }
     labelCells("#bt");
     if (!builds.length) messageRow(tb, 5, "List the required inputs above, then choose Create app.", "", "No builds yet", "build");
-    const running = builds.find((b) => b.status === "running" || b.status === "queued");
+    const running = builds.find((b) => ACTIVE.has(b.status));
     if (running && !JOB) watch(running.id);
   } catch (e) { messageRow($("#bt tbody"), 5, "Could not load builds: " + e.message + ". Reload the page to retry.", "err"); }
 }

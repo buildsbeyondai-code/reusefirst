@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / "plugins" / "req-analyzer" / "app"
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 sys.path.insert(0, str(APP))
-import tempfile  # noqa: E402
+import tempfile
 
 TMP = Path(tempfile.mkdtemp(prefix="reqan-test-"))
 os.environ["REQAN_STATE_DIR"] = str(TMP / "state")
@@ -31,7 +31,7 @@ os.environ["REQAN_NO_GH_CLI"] = "1"  # tests never read the developer's real Git
 os.environ.pop("GITHUB_TOKEN", None)
 os.environ.pop("GH_TOKEN", None)
 
-from reqanalyzer import engine, reuse, sources  # noqa: E402
+from reqanalyzer import engine, reuse, sources
 
 
 def fake_clone(url, dest, workdir):
@@ -43,6 +43,7 @@ def fake_clone(url, dest, workdir):
     return {"ok": True, "sha": "0123456789abcdef0123456789abcdef01234567", "error": None}
 
 
+reuse_real_clone = reuse.clone_repo  # kept for tests of the real clone logic
 reuse.clone_repo = fake_clone
 
 

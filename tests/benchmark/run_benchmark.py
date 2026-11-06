@@ -15,7 +15,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE.parents[1] / "plugins" / "req-analyzer" / "app"))
-from reqanalyzer import engine, textscore  # noqa: E402
+from reqanalyzer import engine, textscore
 
 QUERIES = json.loads((HERE / "queries.json").read_text())
 QRELS = json.loads((HERE / "qrels.json").read_text())["qrels"]
@@ -78,7 +78,7 @@ def main():
         return build_snapshot()
     snap = json.loads((HERE / "snapshot.json").read_text())
     n, df = snap["n"], snap["df"]
-    base = lambda t: math.log((n + 1) / (df.get(t, 0) + 1)) + 1.0  # noqa: E731  same formula as engine.make_idf
+    base = lambda t: math.log((n + 1) / (df.get(t, 0) + 1)) + 1.0
     report = {}
     for name, terms_of in RANKERS.items():
         idf = textscore.weighted(base) if WEIGHTED[name] else base

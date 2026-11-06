@@ -12,12 +12,10 @@ import logging
 import os
 import re
 import sys
+import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-
-
-import threading
 
 from . import __version__, builder, engine, history, obs, sandbox, sources
 

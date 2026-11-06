@@ -23,7 +23,8 @@ import time
 import uuid
 from pathlib import Path
 
-from . import gates, lifecycle as L, policy, reuse, sandbox
+from . import gates, policy, reuse, sandbox
+from . import lifecycle as L
 from .obs import METRICS, redact
 
 STATE_DIR = Path(os.environ.get("REQAN_STATE_DIR",
@@ -154,7 +155,7 @@ def git_env() -> dict:
 
 def _git_config(key: str) -> str:
     try:
-        r = subprocess.run(["git", "config", "--global", key], capture_output=True, text=True, timeout=5)
+        r = subprocess.run(["git", "config", "--global", key], check=False, capture_output=True, text=True, timeout=5)
         return r.stdout.strip()
     except (OSError, subprocess.TimeoutExpired):
         return ""
@@ -335,6 +336,13 @@ def uaises_section(text: str, number: int) -> str:
 def _inputs_prompt(requirement: str, analysis: dict | None, standard: str, context: str = "") -> str:
     tops = [f"- {r['name']} ({r['closeness']}%): {r['description'][:160]}"
             for r in ((analysis or {}).get("github") or [])[:3] + ((analysis or {}).get("claude_plugins") or [])[:2]]
+    enhancement = (f"""
+This is an ENHANCEMENT of an existing app (not a new app). Describe only the change: journeys, must-haves and
+acceptance criteria for the new behaviour, plus "existing features and tests keep working". The app today:
+<existing_app>
+{context}
+</existing_app>
+""" if context else "")
     return f"""You prepare the requirements input form for building a software application. Every requirement must
 follow the user's engineering standard (UAISES). Its requirements section is:
 
@@ -350,13 +358,7 @@ The user's requirement:
 <requirement>
 {requirement}
 </requirement>
-{f"""
-This is an ENHANCEMENT of an existing app (not a new app). Describe only the change: journeys, must-haves and
-acceptance criteria for the new behaviour, plus "existing features and tests keep working". The app today:
-<existing_app>
-{context}
-</existing_app>
-""" if context else ""}
+{enhancement}
 Closest existing projects (context only):
 {chr(10).join(tops) or "- none"}
 
@@ -416,7 +418,7 @@ def run_claude_json(prompt: str, schema: dict, timeout: int = INPUTS_TIMEOUT_S) 
     cmd = [exe, "-p", prompt, "--output-format", "json", "--tools", "", "--no-session-persistence",
            "--json-schema", json.dumps(schema)]
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
+        r = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
         raise BuildError(f"Claude did not answer within {timeout} s") from None
     try:
