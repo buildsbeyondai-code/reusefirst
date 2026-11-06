@@ -15,6 +15,10 @@ The Build tab can create a new app, or enhance an existing app in `~/apps`, with
 sandbox and are **verified independently** by ReuseFirst before they count as successful. Every build follows two
 bundled standards: UAISES for engineering and UEUIS for the UI.
 
+## Install
+`/plugin install reusefirst --marketplace buildsbeyondai-code/reusefirst` (Claude Code 2.1.275+), or
+`/plugin marketplace add buildsbeyondai-code/reusefirst` then `/plugin install reusefirst@reusefirst`.
+
 ## Use
 - `/reusefirst:reusefirst <requirement>` (or `status`), or just ask "does something like this already exist?".
 - Web UI: http://127.0.0.1:5057/. It has three tabs: Analyze, Build app and Past requirements.
