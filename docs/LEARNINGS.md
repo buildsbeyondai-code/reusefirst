@@ -73,3 +73,23 @@ Traps:
 - Benchmark: name double-counting looked plausible but made NDCG worse. Measure before keeping a ranking change.
 - Playwright Python lives in `~/apps/resume-matched-job-finder/.venv` on this PC. For E2E, start a throwaway server
   with `REQAN_STATE_DIR=<tmp> python3 -m reqanalyzer.server --port 5099`.
+
+## Real builds (2026-11-06, job finder enhancement)
+- `claude_bin()` returns `~/.local/bin/claude`, a symlink into `~/.local/share/claude/versions/`. Only the real
+  folder is mounted, so always launch `os.path.realpath(exe)`. The first real 2.0 build died with exit 127, and the
+  fake claude (a real file) never showed it.
+- A Claude usage limit ends the stream with `subtype: success`, `result: "You've hit your 5-hour limit · resets …"`
+  and exit code 1. Never take the reason from `subtype` alone (`classify_failure`).
+- Builds of Playwright apps need `~/.cache/ms-playwright` mounted read-only (`toolchain_paths`). Without it, 6
+  browser tests were skipped, and the old parser counted them as passed.
+- `unittest` prints `OK (skipped=6)`, so subtract skipped (and expected failures) from "Ran N".
+- The agent's nested Bash sandbox (`--settings` sandbox) needs `socat` and nested user namespaces. Both work inside
+  bwrap on WSL2. Bash commands get pypi.org through the proxy chain. Each Bash call has its own network namespace,
+  so start, check and stop servers within ONE command.
+- The auto-mode classifier refuses tests that read the real Claude credential, even to print only a byte count.
+  Test the mechanism with a decoy file instead.
+- `gh auth refresh -s workflow` from a non-TTY stalls at "Press Enter", and the code it printed was rejected. Run it
+  under `script -qfec` with a piped newline, copy the code with `clip.exe`, and open
+  https://github.com/login/device with `cmd.exe /c start`.
+- `pkill -f "<pattern>"` kills the Bash tool's own shell when the pattern appears in the command. Use
+  `pgrep -x <name>` and kill by PID.

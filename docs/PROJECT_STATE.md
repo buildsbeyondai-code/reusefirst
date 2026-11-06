@@ -1,4 +1,4 @@
-# Project state — 2026-11-06 (v2.0.0)
+# Project state — 2026-11-06 (v2.1.0)
 
 Done:
 - v1.0: analyzer, Analyze tab, CLI, Claude plugin (command, skill, SessionStart hook), local marketplace; installed (user scope).
@@ -66,6 +66,13 @@ Done:
     benchmark.
   - **Quality:** 188 tests, 90% coverage, mutation 16/16, CI.
   - Audit: docs/AUDIT_BASELINE.md (before) and docs/FINAL_AUDIT.md (after).
+
+- 2.0.1–2.1.0 (2026-11-06), from the first real enhancement build (job finder unattended mode):
+  - Fixed: skipped tests counted as passed; the claude symlink not mounted (exit 127); "success" shown as the reason
+    for a usage-limit stop.
+  - Added: Playwright toolchain mount; user data and secrets kept out of builds; nested Bash sandbox denying the
+    credential; same-user API check; resume; optional semantic review.
+  - CI passes on GitHub (Python 3.11/3.12/3.14 + mutation).
 
 Open / next:
 - A real end-to-end build with real Claude inside the 2.0 sandbox (spends usage; needs user approval).
