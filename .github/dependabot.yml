@@ -1,0 +1,13 @@
+# Keeps the commit-SHA pins in .github/workflows current. Dependabot only opens
+# pull requests; CI must pass and a person must merge them.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
