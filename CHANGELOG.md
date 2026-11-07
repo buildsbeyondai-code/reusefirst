@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Release evidence: `tools/release_manifest.py` checks that the four version declarations agree
+  and writes or verifies a per-file SHA-256 manifest of the plugin; `docs/RELEASING.md` describes
+  the manual release, verification and rollback steps.
+- Dependabot keeps the commit-SHA pins on GitHub Actions current.
+
 ## 2.1.1 — 2026-11-06
 Found by the real job-finder enhancement, which ended `partially_completed` with "no port configured":
 - **Start-up check finds the app's port.** The launch gate reads the port variable from `run.sh` or the source
