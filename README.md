@@ -5,7 +5,7 @@ For any requirement it finds the closest existing Claude Code plugins, GitHub pr
 tells you whether reusing one is actually better than building new, and then builds or enhances the app for you to
 your engineering and UI standards.
 
-**Try the analysis now:** [ReuseFirst on Agensi](https://www.agensi.io/skills/reusefirst) — works in Claude Code,
+**Try the analysis now:** [ReuseFirst on Agensi](https://agensi.io/skills/reuse-or-build-instant-verdict-from-github-plugins) — works in Claude Code,
 Cursor, Codex CLI and 20+ other agents. No install, no API key.
 
 ![Analysis results](docs/screenshots/reusefirst-results-dark.png)
